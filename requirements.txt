@@ -1,0 +1,6 @@
+numpy<2
+pandas
+yfinance
+requests
+PyQt6
+matplotlib

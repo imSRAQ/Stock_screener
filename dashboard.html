@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Shape Screener</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+:root{
+  --bg:#13151a;
+  --bg-panel:#1a1d24;
+  --bg-row:#1e2129;
+  --bg-row-hover:#252a34;
+  --border:#2a2e38;
+  --text:#e8e6e1;
+  --text-dim:#7a8088;
+  --text-faint:#4a4f59;
+  --green:#2ea35a;
+  --green-dim:#1d6b3c;
+  --red:#d6473f;
+  --red-dim:#8c3530;
+  --amber:#e8a23d;
+  --amber-dim:#7a5826;
+  --mono:'JetBrains Mono',monospace;
+  --sans:'Inter',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--sans);
+  font-size:14px;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+.app{
+  max-width:1180px;
+  margin:0 auto;
+  padding:28px 20px 60px;
+}
+
+/* ---------- header ---------- */
+.header{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  margin-bottom:24px;
+  gap:20px;
+  flex-wrap:wrap;
+}
+.title-block .eyebrow{
+  font-family:var(--mono);
+  font-size:11px;
+  letter-spacing:0.12em;
+  color:var(--amber);
+  text-transform:uppercase;
+  margin-bottom:6px;
+}
+.title-block h1{
+  font-size:22px;
+  font-weight:700;
+  letter-spacing:-0.01em;
+}
+.title-block .sub{
+  color:var(--text-dim);
+  font-size:13px;
+  margin-top:4px;
+}
+.load-controls{
+  display:flex;
+  gap:8px;
+  align-items:center;
+}
+.btn{
+  font-family:var(--sans);
+  font-size:13px;
+  font-weight:600;
+  padding:9px 16px;
+  border-radius:6px;
+  border:1px solid var(--border);
+  background:var(--bg-panel);
+  color:var(--text);
+  cursor:pointer;
+  transition:background 0.15s, border-color 0.15s;
+}
+.btn:hover{background:var(--bg-row-hover); border-color:var(--text-faint);}
+.btn.primary{background:var(--amber); color:#1a1407; border-color:var(--amber);}
+.btn.primary:hover{background:#f0ad52;}
+input[type=file]{display:none;}
+
+/* ---------- reference panel ---------- */
+.ref-panel{
+  background:var(--bg-panel);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:20px 22px;
+  margin-bottom:20px;
+  display:grid;
+  grid-template-columns:1fr 280px;
+  gap:24px;
+  align-items:center;
+}
+.ref-info .label{
+  font-family:var(--mono);
+  font-size:11px;
+  color:var(--amber);
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  margin-bottom:6px;
+}
+.ref-info .ticker{
+  font-family:var(--mono);
+  font-size:28px;
+  font-weight:700;
+  letter-spacing:-0.01em;
+}
+.ref-info .meta{
+  font-family:var(--mono);
+  font-size:12px;
+  color:var(--text-dim);
+  margin-top:8px;
+  display:flex;
+  gap:18px;
+  flex-wrap:wrap;
+}
+.ref-info .meta span b{color:var(--text);font-weight:600;}
+/* *** NEW: market cap badge styling *** */
+.mcap-badge{
+  font-family:var(--mono);
+  font-size:11px;
+  color:var(--text-dim);
+}
+.mcap-na{color:var(--text-faint); font-style:italic;}
+.ref-chart{height:90px;}
+
+/* ---------- filter bar ---------- */
+.filter-bar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:10px;
+  padding:0 4px;
+  flex-wrap:wrap;
+  gap:10px;
+}
+.filter-bar .count{
+  font-family:var(--mono);
+  font-size:12px;
+  color:var(--text-dim);
+}
+.filter-bar .count b{color:var(--text);}
+.sort-controls{
+  display:flex;
+  gap:6px;
+  font-family:var(--mono);
+  font-size:11px;
+}
+.sort-btn{
+  background:none;
+  border:1px solid var(--border);
+  color:var(--text-dim);
+  padding:5px 10px;
+  border-radius:5px;
+  cursor:pointer;
+  letter-spacing:0.03em;
+  text-transform:uppercase;
+}
+.sort-btn.active{border-color:var(--amber); color:var(--amber);}
+
+/* ---------- table ---------- */
+.table-wrap{
+  border:1px solid var(--border);
+  border-radius:10px;
+  overflow:hidden;
+}
+.t-head{
+  display:grid;
+  /* *** MODIFIED: added a market-cap column (90px) before similarity *** */
+  grid-template-columns:34px 110px 1fr 90px 90px 90px 90px;
+  gap:14px;
+  padding:10px 16px;
+  background:var(--bg-panel);
+  font-family:var(--mono);
+  font-size:10.5px;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  color:var(--text-faint);
+  border-bottom:1px solid var(--border);
+}
+.t-head div:nth-child(n+4){text-align:right;}
+.row{
+  display:grid;
+  /* *** MODIFIED: matches t-head's new 7-column layout *** */
+  grid-template-columns:34px 110px 1fr 90px 90px 90px 90px;
+  gap:14px;
+  align-items:center;
+  padding:11px 16px;
+  background:var(--bg-row);
+  border-bottom:1px solid var(--border);
+  transition:background 0.12s;
+  cursor:pointer;
+}
+.row:last-child{border-bottom:none;}
+.row:hover{background:var(--bg-row-hover);}
+.row .rank{
+  font-family:var(--mono);
+  font-size:12px;
+  color:var(--text-faint);
+}
+.row .ticker{
+  font-family:var(--mono);
+  font-size:13.5px;
+  font-weight:600;
+  color:var(--text);
+}
+.row .spark{height:36px;}
+.row .num{
+  font-family:var(--mono);
+  font-size:13px;
+  text-align:right;
+}
+.row .num.score{font-weight:700;}
+.row .num.pos{color:var(--green);}
+.row .num.neg{color:var(--red);}
+.score-bar-bg{
+  position:relative;
+  height:4px;
+  background:var(--border);
+  border-radius:2px;
+  margin-top:4px;
+  width:64px;
+  margin-left:auto;
+}
+.score-bar-fill{
+  position:absolute;
+  height:100%;
+  border-radius:2px;
+  background:var(--amber);
+}
+
+/* ---------- empty state ---------- */
+.empty{
+  text-align:center;
+  padding:70px 20px;
+  color:var(--text-dim);
+}
+.empty .big{
+  font-family:var(--mono);
+  font-size:42px;
+  color:var(--text-faint);
+  margin-bottom:14px;
+}
+.empty p{max-width:440px; margin:0 auto 18px; font-size:13.5px; line-height:1.6;}
+.empty code{
+  background:var(--bg-panel);
+  border:1px solid var(--border);
+  padding:2px 7px;
+  border-radius:4px;
+  font-family:var(--mono);
+  font-size:12px;
+  color:var(--amber);
+}
+
+/* ---------- footer note ---------- */
+.footnote{
+  margin-top:18px;
+  padding:14px 16px;
+  background:var(--bg-panel);
+  border:1px solid var(--border);
+  border-radius:8px;
+  font-size:12px;
+  color:var(--text-dim);
+  line-height:1.6;
+}
+.footnote b{color:var(--text);}
+
+@media (max-width:720px){
+  .ref-panel{grid-template-columns:1fr;}
+  .t-head{display:none;}
+  .row{grid-template-columns:1fr; gap:8px; padding:14px 16px;}
+  .row .spark{display:none;}
+  .row .num{text-align:left;}
+  .row .num::before{content:attr(data-label) ": "; color:var(--text-faint);}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <div class="title-block">
+      <div class="eyebrow">NSE &middot; Daily Candles</div>
+      <h1>Shape Screener</h1>
+      <div class="sub">Ranks stocks by candlestick-pattern similarity to a reference uptrend</div>
+    </div>
+    <div class="load-controls">
+      <button class="btn" id="sampleBtn">Load sample data</button>
+      <button class="btn primary" id="loadBtn">Load JSON output</button>
+      <input type="file" id="fileInput" accept="application/json">
+    </div>
+  </div>
+
+  <div id="content">
+    <div class="empty">
+      <div class="big">∿</div>
+      <p>No data loaded yet. Run <code>stock_similarity_screener.py</code> on your machine, then load the resulting JSON file here — or load sample data to see how this looks.</p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let state = { data: null, sortKey: 'similarity_score', sortDir: -1 };
+
+document.getElementById('loadBtn').onclick = () => document.getElementById('fileInput').click();
+document.getElementById('fileInput').onchange = (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      const json = JSON.parse(ev.target.result);
+      state.data = json;
+      render();
+    } catch (err) {
+      alert('Could not parse that file as JSON: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+};
+document.getElementById('sampleBtn').onclick = () => {
+  state.data = SAMPLE_DATA;
+  render();
+};
+
+/* *** NEW: format a raw rupee market-cap figure into Indian Cr/Lakh
+   notation, which is how this number is conventionally read in NSE
+   contexts (e.g. "₹19,50,000 Cr" not "₹19.5 trillion"). Returns
+   null for missing data so the caller can render a dash instead of 0. *** */
+function formatMarketCap(rupees){
+  if (rupees === null || rupees === undefined) return null;
+  const crores = rupees / 1e7;
+  if (crores >= 1e5) {
+    return '₹' + (crores/1e5).toFixed(2) + 'L Cr';   // lakh crore, for mega-caps
+  }
+  if (crores >= 1) {
+    return '₹' + Math.round(crores).toLocaleString('en-IN') + ' Cr';
+  }
+  const lakhs = rupees / 1e5;
+  return '₹' + Math.round(lakhs).toLocaleString('en-IN') + ' L';
+}
+
+function sparkPath(values, w, h, pad=2){
+  if (!values || values.length < 2) return '';
+  const min = Math.min(...values), max = Math.max(...values);
+  const range = (max - min) || 1;
+  const stepX = (w - pad*2) / (values.length - 1);
+  return values.map((v,i) => {
+    const x = pad + i*stepX;
+    const y = pad + (h - pad*2) * (1 - (v - min)/range);
+    return (i===0 ? 'M' : 'L') + x.toFixed(1) + ',' + y.toFixed(1);
+  }).join(' ');
+}
+
+
+function buildSpark(refCloses, candCloses, w=120, h=36, color){
+  // resample reference to candidate length for overlay comparison
+  const n = candCloses.length;
+  const resampledRef = [];
+  for (let i=0;i<n;i++){
+    const t = i/(n-1) * (refCloses.length-1);
+    const lo = Math.floor(t), hi = Math.ceil(t);
+    const frac = t - lo;
+    resampledRef.push(refCloses[lo]*(1-frac) + refCloses[Math.min(hi,refCloses.length-1)]*frac);
+  }
+  const refPath = sparkPath(resampledRef, w, h);
+  const candPath = sparkPath(candCloses, w, h);
+  return `<svg viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" preserveAspectRatio="none">
+    <path d="${refPath}" fill="none" stroke="var(--amber)" stroke-width="1.4" stroke-opacity="0.55" stroke-dasharray="2,2"/>
+    <path d="${candPath}" fill="none" stroke="${color}" stroke-width="1.8"/>
+  </svg>`;
+}
+
+function render(){
+  const d = state.data;
+  if (!d){ return; }
+  const content = document.getElementById('content');
+
+  const refCloses = d.reference.close;
+  const refTicker = d.reference.ticker.replace('.NS','');
+  const lookback = d.reference.lookback_days;
+
+  let results = (d.results || []).slice();
+  results.sort((a,b) => (a[state.sortKey] - b[state.sortKey]) * state.sortDir);
+
+  const refSpark = `<svg viewBox="0 0 280 90" width="280" height="90" preserveAspectRatio="none">
+    <path d="${sparkPath(refCloses, 280, 90, 6)}" fill="none" stroke="var(--amber)" stroke-width="2"/>
+  </svg>`;
+
+  const rowsHtml = results.map((r, i) => {
+    const cand = (d.candidates_close && d.candidates_close[r.ticker]) || [];
+    const color = r.pct_return >= 0 ? 'var(--green)' : 'var(--red)';
+    const spark = buildSpark(refCloses, cand, 130, 36, color);
+    const retClass = r.pct_return >= 0 ? 'pos' : 'neg';
+    const barWidth = Math.max(2, Math.min(64, (r.similarity_score/100)*64));
+    // *** NEW: look up this candidate's market cap, if the screener run
+    // included --with-market-cap. Falls back to a muted "n/a" dash. ***
+    const capRaw = (d.market_caps && d.market_caps[r.ticker]) ?? null;
+    const capDisplay = formatMarketCap(capRaw);
+    const capHtml = capDisplay
+      ? `<span class="mcap-badge">${capDisplay}</span>`
+      : `<span class="mcap-na">n/a</span>`;
+    return `
+      <div class="row" data-ticker="${r.ticker}">
+        <div class="rank">${String(i+1).padStart(2,'0')}</div>
+        <div class="ticker">${r.ticker.replace('.NS','')}</div>
+        <div class="spark">${spark}</div>
+        <div class="num" data-label="Mkt Cap">${capHtml}</div>
+        <div class="num score" data-label="Similarity">${r.similarity_score.toFixed(1)}
+          <div class="score-bar-bg"><div class="score-bar-fill" style="width:${barWidth}px"></div></div>
+        </div>
+        <div class="num ${retClass}" data-label="Return">${r.pct_return >= 0 ? '+' : ''}${r.pct_return.toFixed(2)}%</div>
+        <div class="num" data-label="Slope" style="color:var(--text-dim)">${(r.trend_slope*1000).toFixed(2)}‱</div>
+      </div>`;
+  }).join('');
+
+  const failedNote = d.failed_count ? ` &middot; ${d.failed_count} skipped (no data)` : '';
+
+  // *** NEW: reference's own market cap, shown in the top panel ***
+  const refCapDisplay = formatMarketCap(d.reference.market_cap ?? null);
+
+  content.innerHTML = `
+    <div class="ref-panel">
+      <div class="ref-info">
+        <div class="label">Reference Pattern</div>
+        <div class="ticker">${refTicker}</div>
+        <div class="meta">
+          <span><b>${lookback}</b> trading days</span>
+          <span><b>${results.length}</b> uptrend matches</span>
+          <span>scanned <b>${d.scanned_count || '–'}</b>${failedNote}</span>
+          ${refCapDisplay ? `<span>mkt cap <b>${refCapDisplay}</b></span>` : ''}
+        </div>
+      </div>
+      <div class="ref-chart">${refSpark}</div>
+    </div>
+
+    <div class="filter-bar">
+      <div class="count">Showing <b>${results.length}</b> stocks &middot; sorted by <b>${state.sortKey.replace('_',' ')}</b></div>
+      <div class="sort-controls">
+        <button class="sort-btn ${state.sortKey==='similarity_score'?'active':''}" data-key="similarity_score">Similarity</button>
+        <button class="sort-btn ${state.sortKey==='pct_return'?'active':''}" data-key="pct_return">Return</button>
+        <button class="sort-btn ${state.sortKey==='trend_slope'?'active':''}" data-key="trend_slope">Slope</button>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <div class="t-head">
+        <div>#</div><div>Ticker</div><div>Shape (vs ref)</div><div>Mkt Cap</div><div>Similarity</div><div>Return</div><div>Slope</div>
+      </div>
+      ${rowsHtml || '<div style="padding:30px;text-align:center;color:var(--text-dim);font-size:13px;">No matches in this dataset.</div>'}
+    </div>
+
+    <div class="footnote">
+      <b>Reading this screener:</b> Similarity score (0–100) measures how closely each candidate's price path
+      matches the reference's shape using Dynamic Time Warping, not whether it's a good investment.
+      Dashed amber line in each row is the reference pattern overlaid for comparison. Market cap is a current
+      snapshot, not historical, and shows "n/a" if the screener run didn't fetch it
+      (run with <code style="font-family:var(--mono);background:var(--bg);padding:1px 5px;border-radius:3px;">--with-market-cap</code>).
+      Use this to shortlist candidates for your own fundamental and risk analysis — it is not trading advice.
+      <br>Generated: <b>${d.generated_at ? new Date(d.generated_at).toLocaleString() : '—'}</b>
+    </div>
+  `;
+
+  content.querySelectorAll('.sort-btn').forEach(btn => {
+    btn.onclick = () => {
+      const key = btn.dataset.key;
+      if (state.sortKey === key) state.sortDir *= -1;
+      else { state.sortKey = key; state.sortDir = -1; }
+      render();
+    };
+  });
+}
+
+// Minimal embedded sample so the dashboard is explorable with zero setup.
+const SAMPLE_DATA = {"generated_at": "2026-06-28T17:44:08.120432", "reference": {"ticker": "RELIANCE.NS", "lookback_days": 60, "close": [2416.52, 2415.8, 2419.06, 2425.32, 2422.01, 2425.02, 2428.02, 2416.98, 2428.12, 2435.92, 2433.92, 2435.55, 2442.59, 2443.5, 2444.56, 2435.93, 2443.37, 2447.36, 2452.56, 2443.34, 2459.55, 2459.34, 2454.8, 2469.59, 2467.78, 2454.73, 2450.04, 2430.29, 2437.24, 2432.47, 2469.53, 2483.17, 2475.03, 2484.39, 2472.94, 2472.71, 2468.15, 2484.91, 2504.11, 2506.54, 2518.34, 2521.97, 2531.58, 2530.63, 2522.03, 2512.67, 2520.81, 2543.86, 2551.08, 2551.95, 2572.32, 2579.29, 2585.17, 2592.26, 2596.27, 2598.86, 2592.45, 2601.53, 2605.84, 2620.46], "dates": ["2026-04-01", "2026-04-02", "2026-04-03", "2026-04-04", "2026-04-05", "2026-04-06", "2026-04-07", "2026-04-08", "2026-04-09", "2026-04-10", "2026-04-11", "2026-04-12", "2026-04-13", "2026-04-14", "2026-04-15", "2026-04-16", "2026-04-17", "2026-04-18", "2026-04-19", "2026-04-20", "2026-04-21", "2026-04-22", "2026-04-23", "2026-04-24", "2026-04-25", "2026-04-26", "2026-04-27", "2026-04-28", "2026-04-29", "2026-04-30", "2026-05-01", "2026-05-02", "2026-05-03", "2026-05-04", "2026-05-05", "2026-05-06", "2026-05-07", "2026-05-08", "2026-05-09", "2026-05-10", "2026-05-11", "2026-05-12", "2026-05-13", "2026-05-14", "2026-05-15", "2026-05-16", "2026-05-17", "2026-05-18", "2026-05-19", "2026-05-20", "2026-05-21", "2026-05-22", "2026-05-23", "2026-05-24", "2026-05-25", "2026-05-26", "2026-05-27", "2026-05-28", "2026-05-29", "2026-05-30"], "market_cap": 19800000000000.0}, "params": {"min_slope": 0.0, "top_n": 30, "source": "yfinance"}, "results": [{"ticker": "TITAN.NS", "similarity_score": 91.67, "pct_return": 11.7, "trend_slope": 0.001827, "dtw_distance": 5.4557, "is_uptrend": true}, {"ticker": "TATAMOTORS.NS", "similarity_score": 90.45, "pct_return": 38.88, "trend_slope": 0.006257, "dtw_distance": 6.337, "is_uptrend": true}, {"ticker": "AXISBANK.NS", "similarity_score": 87.93, "pct_return": 13.91, "trend_slope": 0.002538, "dtw_distance": 8.2382, "is_uptrend": true}, {"ticker": "ITC.NS", "similarity_score": 84.22, "pct_return": 13.13, "trend_slope": 0.002337, "dtw_distance": 11.2389, "is_uptrend": true}, {"ticker": "BAJFINANCE.NS", "similarity_score": 81.42, "pct_return": 4.57, "trend_slope": 0.000559, "dtw_distance": 13.695, "is_uptrend": true}, {"ticker": "SBIN.NS", "similarity_score": 78.59, "pct_return": 8.98, "trend_slope": 0.001188, "dtw_distance": 16.3501, "is_uptrend": true}, {"ticker": "MARUTI.NS", "similarity_score": 69.3, "pct_return": 0.75, "trend_slope": 0.000217, "dtw_distance": 26.5843, "is_uptrend": true}], "candidates_close": {"TITAN.NS": [3202.41, 3183.61, 3202.91, 3207.14, 3219.98, 3209.91, 3229.36, 3226.31, 3229.01, 3216.2, 3218.19, 3219.44, 3221.21, 3230.47, 3235.2, 3250.91, 3249.29, 3241.34, 3245.11, 3256.65, 3275.58, 3278.23, 3249.92, 3247.32, 3257.72, 3251.35, 3238.03, 3234.62, 3221.46, 3222.0, 3325.96, 3351.53, 3366.38, 3366.55, 3382.66, 3402.75, 3404.79, 3408.53, 3389.73, 3409.43, 3411.23, 3394.62, 3382.25, 3388.43, 3406.42, 3414.2, 3428.72, 3424.36, 3417.12, 3436.61, 3451.37, 3459.86, 3484.1, 3481.54, 3485.36, 3506.53, 3537.44, 3546.4, 3575.41, 3577.03], "TATAMOTORS.NS": [900.59, 891.95, 894.15, 907.15, 907.65, 905.11, 900.75, 897.25, 898.25, 893.97, 905.75, 906.86, 910.31, 921.74, 933.56, 935.08, 939.87, 947.08, 948.73, 940.86, 947.59, 944.6, 938.74, 924.85, 915.32, 903.42, 893.27, 892.7, 893.53, 889.19, 995.65, 1007.54, 1015.3, 1022.67, 1026.46, 1033.96, 1055.35, 1068.39, 1074.17, 1079.17, 1081.81, 1091.89, 1102.06, 1101.24, 1111.98, 1116.4, 1132.79, 1141.56, 1159.69, 1164.77, 1170.88, 1180.51, 1194.67, 1205.9, 1206.32, 1215.25, 1223.22, 1228.47, 1232.41, 1250.73], "AXISBANK.NS": [1147.95, 1148.53, 1156.65, 1148.04, 1136.47, 1140.33, 1140.59, 1143.24, 1147.85, 1148.08, 1155.18, 1150.43, 1152.38, 1148.06, 1141.65, 1147.46, 1152.94, 1140.85, 1134.5, 1138.04, 1147.03, 1143.87, 1144.08, 1135.69, 1154.77, 1159.59, 1167.35, 1173.46, 1181.49, 1187.25, 1186.4, 1193.11, 1195.16, 1205.74, 1202.09, 1199.8, 1205.93, 1216.39, 1218.9, 1215.42, 1216.08, 1214.1, 1228.87, 1236.67, 1247.02, 1250.63, 1248.24, 1257.95, 1271.03, 1276.61, 1277.94, 1287.0, 1285.91, 1292.76, 1289.28, 1283.98, 1289.45, 1293.31, 1308.14, 1307.68], "ITC.NS": [430.87, 428.25, 423.44, 418.9, 421.09, 418.36, 422.54, 427.61, 427.55, 433.33, 434.81, 438.98, 439.11, 442.78, 440.75, 443.42, 442.84, 443.25, 445.95, 447.26, 447.84, 450.82, 454.03, 450.68, 453.16, 455.97, 454.51, 456.47, 453.3, 458.42, 458.5, 459.07, 463.46, 463.83, 466.43, 464.09, 463.18, 459.8, 459.98, 463.87, 465.34, 468.79, 466.51, 464.66, 464.07, 466.59, 468.45, 469.21, 471.88, 472.22, 472.96, 477.67, 476.71, 478.06, 483.7, 484.8, 487.72, 486.7, 493.37, 487.42], "BAJFINANCE.NS": [6999.24, 6987.09, 7012.02, 7024.29, 7031.39, 7059.92, 7081.14, 7099.19, 7132.3, 7148.39, 7141.97, 7141.91, 7137.88, 7152.13, 7134.18, 7097.37, 7108.57, 7084.16, 7044.36, 7062.69, 7053.92, 7075.32, 7071.05, 7052.0, 7029.91, 7026.04, 7028.2, 7016.62, 7018.59, 6989.19, 6998.55, 6962.71, 6966.86, 6993.29, 7029.59, 7081.45, 7051.54, 7079.51, 7118.67, 7152.18, 7137.95, 7157.24, 7212.75, 7184.31, 7205.22, 7242.03, 7233.62, 7257.19, 7239.42, 7228.11, 7216.69, 7230.49, 7237.22, 7270.07, 7255.56, 7261.28, 7294.31, 7317.33, 7293.21, 7318.84], "SBIN.NS": [807.36, 813.88, 814.73, 821.7, 821.55, 820.33, 819.49, 820.78, 821.17, 823.94, 822.86, 828.69, 835.79, 835.31, 830.18, 835.8, 843.49, 844.67, 840.24, 843.57, 853.2, 845.82, 850.21, 850.64, 848.36, 852.85, 848.36, 851.84, 860.41, 863.29, 860.91, 854.01, 849.6, 842.4, 852.39, 853.15, 849.92, 845.43, 842.09, 842.41, 838.0, 848.38, 846.65, 844.73, 848.27, 857.52, 866.14, 865.71, 868.98, 871.73, 876.38, 879.66, 876.94, 872.64, 875.52, 871.6, 880.41, 882.61, 879.48, 879.87], "MARUTI.NS": [11024.8, 11060.96, 11052.37, 11065.26, 11051.61, 11034.02, 11042.4, 11064.1, 11053.21, 10992.8, 11016.37, 10974.47, 10984.13, 11043.5, 11049.0, 11019.31, 10981.47, 11022.58, 11028.08, 11050.27, 11084.06, 11088.59, 11085.33, 11062.91, 10976.43, 10936.89, 10940.8, 10941.55, 10959.65, 10961.85, 10972.63, 11002.27, 10981.72, 10979.1, 10936.89, 10972.07, 10979.22, 10999.92, 11052.19, 11090.58, 11094.78, 11124.41, 11087.46, 11106.48, 11116.64, 11074.1, 11120.22, 11105.09, 11131.59, 11124.99, 11160.8, 11206.17, 11187.27, 11147.35, 11149.41, 11180.88, 11175.74, 11163.33, 11183.98, 11107.14]}, "market_caps": {"TITAN.NS": 3050000000000.0, "TATAMOTORS.NS": 3250000000000.0, "AXISBANK.NS": 3600000000000.0, "ITC.NS": 5450000000000.0, "BAJFINANCE.NS": 4400000000000.0, "SBIN.NS": 7050000000000.0, "MARUTI.NS": 3550000000000.0}, "failed_count": 3, "scanned_count": 13};
+</script>
+</body>
+</html>
