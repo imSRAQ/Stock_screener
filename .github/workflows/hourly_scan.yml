@@ -1,0 +1,87 @@
+name: NSE Stock Monitor
+
+on:
+  schedule:
+    # Daily full scan at 8:00 AM IST = 2:30 UTC (Mon-Fri)
+    - cron: '30 2 * * 1-5'
+    
+    # Weekly diff at 8:15 AM IST = 2:45 UTC (Monday only)
+    - cron: '45 2 * * 1'
+    
+    # Hourly refreshes 9 AM – 4 PM IST = 3:30 – 10:30 UTC (Mon-Fri)
+    - cron: '30 3,4,5,6,7,8,9,10 * * 1-5'
+    
+  workflow_dispatch:
+    # Allows manual trigger from GitHub UI
+    inputs:
+      mode:
+        description: 'Run mode'
+        required: true
+        default: '--hourly'
+        type: choice
+        options:
+          - '--full'
+          - '--weekly'
+          - '--hourly'
+
+permissions:
+  contents: write
+
+jobs:
+  run-monitor:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Needed for git push
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+          
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy pandas requests yfinance tradingview-ta python-telegram-bot google-generativeai holidays
+
+      - name: Run Full Scan
+        if: github.event.schedule == '30 2 * * 1-5' || (github.event_name == 'workflow_dispatch' && github.event.inputs.mode == '--full')
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          cd stocks_monitoring_and_notifying
+          python scheduler.py --full
+
+      - name: Run Weekly Diff
+        if: github.event.schedule == '45 2 * * 1' || (github.event_name == 'workflow_dispatch' && github.event.inputs.mode == '--weekly')
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          cd stocks_monitoring_and_notifying
+          python scheduler.py --weekly
+
+      - name: Run Hourly Refresh
+        if: github.event.schedule == '30 3,4,5,6,7,8,9,10 * * 1-5' || (github.event_name == 'workflow_dispatch' && github.event.inputs.mode == '--hourly')
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          cd stocks_monitoring_and_notifying
+          python scheduler.py --hourly
+
+      - name: Commit and push changes
+        # Only push if there are changes (e.g. to universe snapshots or watchlist)
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add -f stocks_monitoring_and_notifying/universe_snapshot*.json stocks_monitoring_and_notifying/latest_universe_data.json stocks_monitoring_and_notifying/watchlist.json stocks_monitoring_and_notifying/portfolio.json stocks_monitoring_and_notifying/fundamental_cache.json || true
+          git diff --staged --quiet || (git commit -m "Auto-update snapshots and watchlist" && git push)
