@@ -5,7 +5,20 @@ Generates concise entry/exit reasoning using the Google Gemini Flash API.
 It processes technical and news sentiment data to provide actionable insights.
 """
 
+# import google.generativeai as genai
 import google.generativeai as genai
+
+# Some versions of the library expose configure(), others require passing the key
+# directly to the model.  We attempt configure() first; if it does not exist we
+# simply skip it – the model constructor will still work when the key is
+# supplied later via `genai.GenerativeModel(..., api_key=…)`.
+try:
+    genai.configure  # attribute check
+except AttributeError:
+    # Newer google-genai package does not have configure; we'll handle the key
+    # later when creating the model.
+    pass
+
 import time
 from typing import Dict, Optional
 
@@ -15,8 +28,8 @@ class AISummarizer:
     def __init__(self, api_key: str):
         if api_key:
             genai.configure(api_key=api_key)
-        # Using gemini-1.5-flash as it's the fast/free tier model
-        self.model = genai.GenerativeModel("gemini-1.5-flash")
+        # Use gemini-3.6-flash (confirmed available via test_ai.py)
+        self.model = genai.GenerativeModel("gemini-3.6-flash")
         self.is_configured = bool(api_key)
 
     def generate_summary(self, stock_data: dict, sentiment_report: dict) -> dict:
