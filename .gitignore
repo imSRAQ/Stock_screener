@@ -1,2 +1,7 @@
 __pycache__/*
 *.pyc
+
+*.json
+*.csv
+!data/*.csv
+!output/sample_output.json

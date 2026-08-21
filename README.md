@@ -8,14 +8,14 @@ trading signals.
 
 | File | Purpose |
 |---|---|
-| `stock_similarity_screener.py` | Main script — run this on your own machine |
-| `nse_screener_gui.py` | Desktop GUI for the screener (run this instead of the CLI script if you prefer a graphical interface) |
-| `data_sources.py` | Pluggable data backends (yfinance + NSE Bhavcopy) and market-cap lookup |
-| `similarity_engine.py` | Core matching logic (DTW shape comparison) |
-| `nifty500_tickers.py` | Default candidate universe (see caveat below) |
-| `dashboard.html` | Visual screener — open in any browser, load the JSON output |
-| `interactive_dashboard.html` | Advanced interactive dashboard |
-| `sample_output.json` | Synthetic example (includes market cap) so the dashboard works before you run anything |
+| `screener/stock_similarity_screener.py` | Main script — run this on your own machine |
+| `screener/nse_screener_gui.py` | Desktop GUI for the screener (run this instead of the CLI script if you prefer a graphical interface) |
+| `screener/data_sources.py` | Pluggable data backends (yfinance + NSE Bhavcopy) and market-cap lookup |
+| `screener/similarity_engine.py` | Core matching logic (DTW shape comparison) |
+| `screener/nifty500_tickers.py` | Default candidate universe (see caveat below) |
+| `templates/dashboard.html` | Visual screener — open in any browser, load the JSON output |
+| `templates/interactive_dashboard.html` | Advanced interactive dashboard |
+| `output/sample_output.json` | Synthetic example (includes market cap) so the dashboard works before you run anything |
 
 ## Setup (one time)
 
@@ -37,8 +37,8 @@ No API key needed for either backend below.
 Both produce the exact same output format, so you can switch freely:
 
 ```bash
-python stock_similarity_screener.py --reference RELIANCE --source yfinance
-python stock_similarity_screener.py --reference RELIANCE --source nse
+python -m screener.stock_similarity_screener --reference RELIANCE --source yfinance
+python -m screener.stock_similarity_screener --reference RELIANCE --source nse
 ```
 
 I also looked at **Alpha Vantage** as a third option but ruled it out for this
@@ -54,29 +54,29 @@ trading day needs fetching each time.
 
 **Option 1: Using the Desktop GUI (Recommended)**
 ```bash
-python nse_screener_gui.py
+python -m screener.nse_screener_gui
 ```
 This opens a graphical interface where you can set your reference stock, lookback window, data source, and other parameters, and then view the results directly.
 
 **Option 2: Using the Command Line**
 ```bash
 # Basic: find stocks shaped like RELIANCE's last 60 days (uses yfinance by default)
-python stock_similarity_screener.py --reference RELIANCE
+python -m screener.stock_similarity_screener --reference RELIANCE
 
 # Same, but using NSE's own official data instead of Yahoo Finance
-python stock_similarity_screener.py --reference RELIANCE --source nse
+python -m screener.stock_similarity_screener --reference RELIANCE --source nse
 
 # Custom lookback window and stricter uptrend requirement
-python stock_similarity_screener.py --reference TCS --lookback 30 --min-slope 0.0015
+python -m screener.stock_similarity_screener --reference TCS --lookback 30 --min-slope 0.0015
 
 # Use your own watchlist instead of the bundled Nifty 500 snapshot
-python stock_similarity_screener.py --reference INFY --tickers-file my_watchlist.csv
+python -m screener.stock_similarity_screener --reference INFY --tickers-file data/my_watchlist.csv
 
 # Also fetch market capitalization for the reference + shortlisted matches
-python stock_similarity_screener.py --reference RELIANCE --with-market-cap
+python -m screener.stock_similarity_screener --reference RELIANCE --with-market-cap
 ```
 
-This writes `screener_output.json`. Open `dashboard.html` in your browser
+This writes `output/screener_output.json`. Open `templates/dashboard.html` in your browser
 and click **Load JSON output** to view the ranked results visually — each
 row shows a mini overlay of the candidate's shape against your reference
 pattern, plus market cap if you used `--with-market-cap`.
