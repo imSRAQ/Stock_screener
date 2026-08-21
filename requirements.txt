@@ -4,3 +4,6 @@ yfinance
 requests
 PyQt6
 matplotlib
+google-generativeai
+openai
+anthropic

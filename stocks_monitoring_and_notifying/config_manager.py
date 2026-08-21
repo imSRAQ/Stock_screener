@@ -75,6 +75,9 @@ class ConfigManager:
         env_token = os.environ.get("TELEGRAM_BOT_TOKEN")
         env_chat = os.environ.get("TELEGRAM_CHAT_ID")
         env_gemini = os.environ.get("GEMINI_API_KEY")
+        env_groq = os.environ.get("GROQ_API_KEY")
+        env_openai = os.environ.get("OPENAI_API_KEY")
+        env_anthropic = os.environ.get("ANTHROPIC_API_KEY")
 
         if env_token:
             self._data["telegram_bot_token"] = env_token
@@ -82,6 +85,12 @@ class ConfigManager:
             self._data["telegram_chat_id"] = env_chat
         if env_gemini:
             self._data["gemini_api_key"] = env_gemini
+        if env_groq:
+            self._data["groq_api_key"] = env_groq
+        if env_openai:
+            self._data["openai_api_key"] = env_openai
+        if env_anthropic:
+            self._data["anthropic_api_key"] = env_anthropic
 
         return self._data
 
@@ -141,6 +150,18 @@ class ConfigManager:
     def gemini_api_key(self) -> str:
         return self._data.get("gemini_api_key", "")
 
+    @property
+    def groq_api_key(self) -> str:
+        return self._data.get("groq_api_key", "")
+
+    @property
+    def openai_api_key(self) -> str:
+        return self._data.get("openai_api_key", "")
+
+    @property
+    def anthropic_api_key(self) -> str:
+        return self._data.get("anthropic_api_key", "")
+
     # Schedule accessors
     @property
     def schedule(self) -> dict:
@@ -173,5 +194,9 @@ class ConfigManager:
     def portfolio(self) -> dict:
         return self._data.get("portfolio", DEFAULTS["portfolio"])
 
-    def __repr__(self) -> str:
-        return f"ConfigManager(path={self.config_path!r})"
+    @property
+    def config(self) -> dict:
+        """Return the entire configuration dictionary.
+        This mirrors the historical attribute that callers (e.g., tests) expect.
+        """
+        return self._data

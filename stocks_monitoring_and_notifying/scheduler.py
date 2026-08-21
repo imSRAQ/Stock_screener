@@ -81,6 +81,10 @@ class Scheduler:
                 return json.load(f)
         return []
 
+    # Max stocks to generate AI summaries for (free tier = 20 req/day,
+    # batch size = 5 stocks/req, so 15 stocks = 3 API calls).
+    MAX_AI_STOCKS = 15
+
     def _run_sentiment_and_notify(self, results: list, market_health: dict, is_weekly=False):
         """Runs the sentiment + AI pipeline and sends Telegram messages."""
         if not results:
@@ -98,8 +102,24 @@ class Scheduler:
         sentiment_analyzer = SentimentAnalyzer()
         sentiments = sentiment_analyzer.analyze_batch(symbols)
         
-        ai_summarizer = AISummarizer(self.config.gemini_api_key)
+        ai_summarizer = AISummarizer(
+            gemini_api_key=self.config.gemini_api_key,
+            groq_api_key=self.config.groq_api_key,
+            openai_api_key=self.config.openai_api_key,
+            anthropic_api_key=self.config.anthropic_api_key
+        )
         
+        # Prepare items for batch AI (limit to MAX_AI_STOCKS to conserve quota)
+        ai_candidates = []
+        for item in results[:self.MAX_AI_STOCKS]:
+            sym = item["symbol"]
+            sentiment = sentiments.get(sym, {})
+            ai_candidates.append({"data": item, "sentiment": sentiment})
+
+        # Batch AI call (uses ~3 API requests for 15 stocks)
+        print(f"[info] Generating AI summaries for top {len(ai_candidates)} stocks (batch mode)...")
+        ai_results = ai_summarizer.generate_batch_summaries(ai_candidates)
+
         final_entries = []
         final_exits = []
         
@@ -107,8 +127,18 @@ class Scheduler:
             sym = item["symbol"]
             sentiment = sentiments.get(sym, {})
             
-            # Rate limit friendly AI summary (added delay inside)
-            ai = ai_summarizer.generate_summary(item, sentiment)
+            # Use AI summary if available, otherwise use a short template
+            if sym in ai_results:
+                ai_text = ai_results[sym]
+            else:
+                ai_text = (
+                    f"Technical setup: RSI {item.get('rsi', 0):.1f}, "
+                    f"ADX {item.get('adx', 0):.1f}, "
+                    f"Slope {item.get('slope', 0):.3f}. "
+                    f"Stop-loss at Rs {item.get('stop_loss', 0):.2f}."
+                )
+            
+            ai = {"ai_summary": ai_text, "raw_news": sentiment.get("news", [])}
             
             payload = {
                 "data": item,
