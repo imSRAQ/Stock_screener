@@ -33,6 +33,9 @@ class TelegramNotifier:
         self._bot_thread = None
         self._bot_app = None
 
+    # Telegram API limit is 4096 characters per message
+    MAX_MSG_LEN = 4096
+
     async def _send_message_async(self, text: str):
         if not self.is_configured:
             print("[warn] Telegram not configured. Skipping message.")
@@ -40,13 +43,37 @@ class TelegramNotifier:
             
         import telegram
         bot = telegram.Bot(token=self.bot_token)
-        try:
-            await bot.send_message(chat_id=self.chat_id, text=text, parse_mode='HTML')
-        except Exception as e:
-            print(f"[error] Failed to send Telegram message: {e}")
+
+        # Split long messages into chunks that fit the Telegram limit
+        chunks = self._split_message(text)
+        for chunk in chunks:
+            try:
+                await bot.send_message(chat_id=self.chat_id, text=chunk, parse_mode='HTML')
+            except Exception as e:
+                print(f"[error] Failed to send Telegram message: {e}")
+
+    def _split_message(self, text: str) -> list:
+        """Splits a message into chunks of MAX_MSG_LEN or fewer characters,
+        breaking at newline boundaries so we never cut mid-line."""
+        if len(text) <= self.MAX_MSG_LEN:
+            return [text]
+
+        chunks = []
+        while text:
+            if len(text) <= self.MAX_MSG_LEN:
+                chunks.append(text)
+                break
+            # Find the last newline within the limit
+            split_at = text.rfind('\n', 0, self.MAX_MSG_LEN)
+            if split_at == -1:
+                # No newline found; hard-cut at the limit
+                split_at = self.MAX_MSG_LEN
+            chunks.append(text[:split_at])
+            text = text[split_at:].lstrip('\n')
+        return chunks
 
     def send_message(self, text: str):
-        """Sends a message synchronously."""
+        """Sends a message synchronously (auto-splits if too long)."""
         if not self.is_configured:
             return
         asyncio.run(self._send_message_async(text))
@@ -75,22 +102,46 @@ class TelegramNotifier:
         msg += "\n"
         return msg
 
+    # How many stocks to include per Telegram message to stay under the
+    # 4096-char limit comfortably (each stock block is ~300-500 chars).
+    STOCKS_PER_MSG = 8
+
     def send_scan_results(self, entry_list: List[Dict], exit_list: List[Dict], market_health: Dict):
-        """Formats and sends the full scan results."""
+        """Formats and sends the full scan results, batched to avoid
+        Telegram's 4096-character message limit."""
         
         header = market_health.get("status_text", "MARKET HEALTH: UNKNOWN")
         
         if entry_list:
-            msg = f"{header}\n\n<b>📈 ENTRY WATCHLIST (Top {len(entry_list)})</b>\n\n"
-            for item in entry_list:
-                msg += self._format_stock_entry(item["data"], item["sentiment"], item["ai"])
-            self.send_message(msg)
+            # Send stocks in batches
+            for i in range(0, len(entry_list), self.STOCKS_PER_MSG):
+                batch = entry_list[i : i + self.STOCKS_PER_MSG]
+                batch_num = i // self.STOCKS_PER_MSG + 1
+                total_batches = (len(entry_list) + self.STOCKS_PER_MSG - 1) // self.STOCKS_PER_MSG
+                
+                if total_batches == 1:
+                    msg = f"{header}\n\n<b>📈 ENTRY WATCHLIST (Top {len(entry_list)})</b>\n\n"
+                else:
+                    msg = f"{header}\n\n<b>📈 ENTRY WATCHLIST ({batch_num}/{total_batches})</b>\n\n"
+                
+                for item in batch:
+                    msg += self._format_stock_entry(item["data"], item["sentiment"], item["ai"])
+                self.send_message(msg)
             
         if exit_list:
-            msg = f"{header}\n\n<b>📉 EXIT/CAUTION WATCHLIST</b>\n\n"
-            for item in exit_list:
-                msg += self._format_stock_entry(item["data"], item["sentiment"], item["ai"])
-            self.send_message(msg)
+            for i in range(0, len(exit_list), self.STOCKS_PER_MSG):
+                batch = exit_list[i : i + self.STOCKS_PER_MSG]
+                batch_num = i // self.STOCKS_PER_MSG + 1
+                total_batches = (len(exit_list) + self.STOCKS_PER_MSG - 1) // self.STOCKS_PER_MSG
+                
+                if total_batches == 1:
+                    msg = f"{header}\n\n<b>📉 EXIT/CAUTION WATCHLIST</b>\n\n"
+                else:
+                    msg = f"{header}\n\n<b>📉 EXIT/CAUTION ({batch_num}/{total_batches})</b>\n\n"
+                
+                for item in batch:
+                    msg += self._format_stock_entry(item["data"], item["sentiment"], item["ai"])
+                self.send_message(msg)
             
         if not entry_list and not exit_list:
             self.send_message(f"{header}\n\nScan complete. No actionable signals found.")
