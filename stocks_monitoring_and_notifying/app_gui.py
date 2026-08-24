@@ -183,8 +183,8 @@ class MainWindow(QMainWindow):
         # API Keys
         self.inp_tg_token = QLineEdit(self.config.telegram_bot_token)
         self.inp_tg_chat = QLineEdit(self.config.telegram_chat_id)
-        self.inp_gemini = QLineEdit(self.config.config_data.get("gemini_api_key", ""))
-        self.inp_groq = QLineEdit(self.config.config_data.get("groq_api_key", ""))
+        self.inp_gemini = QLineEdit(self.config._data.get("gemini_api_key", ""))
+        self.inp_groq = QLineEdit(self.config._data.get("groq_api_key", ""))
         
         form_layout.addRow(QLabel("<b>API Keys</b>"))
         form_layout.addRow("Telegram Bot Token:", self.inp_tg_token)
@@ -217,10 +217,10 @@ class MainWindow(QMainWindow):
     def save_settings(self):
         try:
             # Update config object
-            self.config.config_data["telegram_bot_token"] = self.inp_tg_token.text().strip()
-            self.config.config_data["telegram_chat_id"] = self.inp_tg_chat.text().strip()
-            self.config.config_data["gemini_api_key"] = self.inp_gemini.text().strip()
-            self.config.config_data["groq_api_key"] = self.inp_groq.text().strip()
+            self.config._data["telegram_bot_token"] = self.inp_tg_token.text().strip()
+            self.config._data["telegram_chat_id"] = self.inp_tg_chat.text().strip()
+            self.config._data["gemini_api_key"] = self.inp_gemini.text().strip()
+            self.config._data["groq_api_key"] = self.inp_groq.text().strip()
             
             self.config.filters["rsi_min"] = float(self.inp_rsi_min.text().strip())
             self.config.filters["adx_min"] = float(self.inp_adx_min.text().strip())
