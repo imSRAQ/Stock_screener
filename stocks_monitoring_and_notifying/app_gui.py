@@ -66,6 +66,8 @@ class ScannerThread(QThread):
             self.error.emit(traceback.format_exc())
 
 
+from portfolio_manager import PortfolioManager
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -74,7 +76,8 @@ class MainWindow(QMainWindow):
         
         self.config = ConfigManager()
         self.watchlist_mgr = WatchlistManager()
-        self.notifier = TelegramNotifier(self.config, self.watchlist_mgr)
+        self.portfolio_mgr = PortfolioManager()
+        self.notifier = TelegramNotifier(self.config, self.watchlist_mgr, self.portfolio_mgr)
         
         # Start Telegram bot listener if configured
         if self.notifier.is_configured:
