@@ -1,0 +1,1655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NSE Stock Screener Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #e2e8f0; }
+        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .card-hover { transition: transform 0.2s, box-shadow 0.2s; }
+        .card-hover:hover { transform: translateY(-5px); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5); }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8">
+
+    <div class="max-w-7xl mx-auto">
+        <!-- Header & Market Health -->
+        <header class="glass rounded-2xl p-6 mb-8 flex flex-col md:flex-row justify-between items-center shadow-lg">
+            <div>
+                <h1 class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-emerald-400">NSE Automated Screener</h1>
+                <p class="text-slate-400 mt-1">Last Updated: 2026-08-25 00:51 IST</p>
+            </div>
+            <div class="mt-4 md:mt-0 text-center md:text-right">
+                <div class="text-sm text-slate-400 uppercase tracking-wider font-semibold">Market Health</div>
+                <div class="text-2xl font-bold text-red-400">UNKNOWN</div>
+                <div class="text-sm text-slate-300">Nifty: 0.00 | 50-SMA: 0.00</div>
+            </div>
+        </header>
+
+        <!-- Controls -->
+        <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+            <h2 class="text-2xl font-semibold">Actionable Candidates</h2>
+            <div class="flex gap-2 items-center bg-slate-800 p-1 rounded-lg">
+                <span class="px-3 text-sm text-slate-400">Sort by:</span>
+                <select id="sortSelect" class="bg-slate-700 text-white text-sm rounded px-3 py-2 outline-none cursor-pointer border border-slate-600 focus:border-blue-500 transition-colors" onchange="sortCards()">
+                    <option value="adx_desc">Trend Strength (ADX High to Low)</option>
+                    <option value="rsi_desc">Momentum (RSI High to Low)</option>
+                    <option value="rsi_asc">Momentum (RSI Low to High)</option>
+                    <option value="price_desc">Price (High to Low)</option>
+                    <option value="price_asc">Price (Low to High)</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="flex border-b border-slate-700 mb-6">
+            <button id="tab-entries" class="px-6 py-3 font-semibold text-emerald-400 border-b-2 border-emerald-400 transition-colors" onclick="switchTab('entries')">Entry Candidates (2)</button>
+            <button id="tab-exits" class="px-6 py-3 font-semibold text-slate-400 border-b-2 border-transparent hover:text-red-400 transition-colors" onclick="switchTab('exits')">Caution / Exits (48)</button>
+        </div>
+
+        <!-- Grid Container -->
+        <div id="grid-entries" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            
+            <div class="stock-card glass rounded-xl p-5 flex flex-col card-hover border-t-4 border-t-emerald-500" 
+                 data-rsi="59.1" data-adx="36.6" data-price="250.43" data-slope="0.03581101330870244">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="text-xl font-bold text-white tracking-wide">GANDHAR</h3>
+                        <div class="text-slate-300 font-mono text-lg mt-1">₹250.43</div>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-bold rounded border bg-emerald-500/20 text-emerald-400 border-emerald-500/30">BUY SETUP</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-4 text-sm bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                    <div><span class="text-slate-400 block text-xs uppercase">RSI (14)</span><span class="font-semibold text-white">59.1</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">ADX (14)</span><span class="font-semibold text-white">36.6</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">Stop Loss</span><span class="font-semibold text-orange-400">₹232.69</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">TV Signal</span><span class="font-semibold text-blue-400">STRONG_BUY</span></div>
+                </div>
+                
+                <div class="flex-grow">
+                    <p class="text-slate-300 text-sm leading-relaxed border-l-2 border-slate-600 pl-3 italic">
+                        "Technical setup: RSI 59.1, ADX 36.6, Slope 0.036. Stop-loss at Rs 232.69."
+                    </p>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between items-center text-xs text-slate-500 font-mono">
+                    <span>Slope: 0.036</span>
+                    <a href="https://in.tradingview.com/chart/?symbol=NSE:GANDHAR" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+                        View Chart ↗
+                    </a>
+                </div>
+            </div>
+            
+            <div class="stock-card glass rounded-xl p-5 flex flex-col card-hover border-t-4 border-t-emerald-500" 
+                 data-rsi="62.6" data-adx="44.9" data-price="10644.5" data-slope="0.035803468262540404">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="text-xl font-bold text-white tracking-wide">CRAFTSMAN</h3>
+                        <div class="text-slate-300 font-mono text-lg mt-1">₹10,644.50</div>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-bold rounded border bg-emerald-500/20 text-emerald-400 border-emerald-500/30">BUY SETUP</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-4 text-sm bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                    <div><span class="text-slate-400 block text-xs uppercase">RSI (14)</span><span class="font-semibold text-white">62.6</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">ADX (14)</span><span class="font-semibold text-white">44.9</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">Stop Loss</span><span class="font-semibold text-orange-400">₹10,157.55</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">TV Signal</span><span class="font-semibold text-blue-400">BUY</span></div>
+                </div>
+                
+                <div class="flex-grow">
+                    <p class="text-slate-300 text-sm leading-relaxed border-l-2 border-slate-600 pl-3 italic">
+                        "Technical setup: RSI 62.6, ADX 44.9, Slope 0.036. Stop-loss at Rs 10157.55."
+                    </p>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between items-center text-xs text-slate-500 font-mono">
+                    <span>Slope: 0.036</span>
+                    <a href="https://in.tradingview.com/chart/?symbol=NSE:CRAFTSMAN" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+                        View Chart ↗
+                    </a>
+                </div>
+            </div>
+            
+        </div>
+        
+        <div id="grid-exits" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 hidden">
+            
+            <div class="stock-card glass rounded-xl p-5 flex flex-col card-hover border-t-4 border-t-red-500" 
+                 data-rsi="60.0" data-adx="46.0" data-price="1802.0" data-slope="0.03736429644416683">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="text-xl font-bold text-white tracking-wide">LAURUSLABS</h3>
+                        <div class="text-slate-300 font-mono text-lg mt-1">₹1,802.00</div>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-bold rounded border bg-red-500/20 text-red-400 border-red-500/30">CAUTION / EXIT</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-4 text-sm bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                    <div><span class="text-slate-400 block text-xs uppercase">RSI (14)</span><span class="font-semibold text-white">60.0</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">ADX (14)</span><span class="font-semibold text-white">46.0</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">Stop Loss</span><span class="font-semibold text-orange-400">₹1,742.53</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">TV Signal</span><span class="font-semibold text-blue-400">UNKNOWN</span></div>
+                </div>
+                
+                <div class="flex-grow">
+                    <p class="text-slate-300 text-sm leading-relaxed border-l-2 border-slate-600 pl-3 italic">
+                        "Strong bullish trend strength is indicated by an ADX of 46 alongside healthy momentum with RSI at 60. Enter long near current levels with a strict stop loss at 1742.53, though monitor volume confirmation closely."
+                    </p>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between items-center text-xs text-slate-500 font-mono">
+                    <span>Slope: 0.037</span>
+                    <a href="https://in.tradingview.com/chart/?symbol=NSE:LAURUSLABS" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+                        View Chart ↗
+                    </a>
+                </div>
+            </div>
+            
+            <div class="stock-card glass rounded-xl p-5 flex flex-col card-hover border-t-4 border-t-red-500" 
+                 data-rsi="62.6" data-adx="30.2" data-price="215.67" data-slope="0.0372924787148224">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="text-xl font-bold text-white tracking-wide">UDS</h3>
+                        <div class="text-slate-300 font-mono text-lg mt-1">₹215.67</div>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-bold rounded border bg-red-500/20 text-red-400 border-red-500/30">CAUTION / EXIT</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-4 text-sm bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                    <div><span class="text-slate-400 block text-xs uppercase">RSI (14)</span><span class="font-semibold text-white">62.6</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">ADX (14)</span><span class="font-semibold text-white">30.2</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">Stop Loss</span><span class="font-semibold text-orange-400">₹203.95</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">TV Signal</span><span class="font-semibold text-blue-400">UNKNOWN</span></div>
+                </div>
+                
+                <div class="flex-grow">
+                    <p class="text-slate-300 text-sm leading-relaxed border-l-2 border-slate-600 pl-3 italic">
+                        "Solid momentum setup with RSI over 62 and a healthy ADX of 30 indicates a strong developing uptrend. Consider a long entry targeting further upside with a protective stop loss at 203.95."
+                    </p>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between items-center text-xs text-slate-500 font-mono">
+                    <span>Slope: 0.037</span>
+                    <a href="https://in.tradingview.com/chart/?symbol=NSE:UDS" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+                        View Chart ↗
+                    </a>
+                </div>
+            </div>
+            
+            <div class="stock-card glass rounded-xl p-5 flex flex-col card-hover border-t-4 border-t-red-500" 
+                 data-rsi="64.1" data-adx="32.3" data-price="1457.4" data-slope="0.03725045328126036">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="text-xl font-bold text-white tracking-wide">SAILIFE</h3>
+                        <div class="text-slate-300 font-mono text-lg mt-1">₹1,457.40</div>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-bold rounded border bg-red-500/20 text-red-400 border-red-500/30">CAUTION / EXIT</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-4 text-sm bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                    <div><span class="text-slate-400 block text-xs uppercase">RSI (14)</span><span class="font-semibold text-white">64.1</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">ADX (14)</span><span class="font-semibold text-white">32.3</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">Stop Loss</span><span class="font-semibold text-orange-400">₹1,388.83</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">TV Signal</span><span class="font-semibold text-blue-400">UNKNOWN</span></div>
+                </div>
+                
+                <div class="flex-grow">
+                    <p class="text-slate-300 text-sm leading-relaxed border-l-2 border-slate-600 pl-3 italic">
+                        "Bullish momentum is well-supported by an RSI of 64.1 and a robust ADX reading above 32. A long entry is favorable at current levels, keeping a stop loss at 1388.83 to manage downside risk."
+                    </p>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between items-center text-xs text-slate-500 font-mono">
+                    <span>Slope: 0.037</span>
+                    <a href="https://in.tradingview.com/chart/?symbol=NSE:SAILIFE" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+                        View Chart ↗
+                    </a>
+                </div>
+            </div>
+            
+            <div class="stock-card glass rounded-xl p-5 flex flex-col card-hover border-t-4 border-t-red-500" 
+                 data-rsi="64.2" data-adx="32.7" data-price="1724.7" data-slope="0.03723575744495796">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="text-xl font-bold text-white tracking-wide">RUBICON</h3>
+                        <div class="text-slate-300 font-mono text-lg mt-1">₹1,724.70</div>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-bold rounded border bg-red-500/20 text-red-400 border-red-500/30">CAUTION / EXIT</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-4 text-sm bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                    <div><span class="text-slate-400 block text-xs uppercase">RSI (14)</span><span class="font-semibold text-white">64.2</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">ADX (14)</span><span class="font-semibold text-white">32.7</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">Stop Loss</span><span class="font-semibold text-orange-400">₹1,614.56</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">TV Signal</span><span class="font-semibold text-blue-400">UNKNOWN</span></div>
+                </div>
+                
+                <div class="flex-grow">
+                    <p class="text-slate-300 text-sm leading-relaxed border-l-2 border-slate-600 pl-3 italic">
+                        "Strong directional strength is evident with ADX at 32.7 and momentum firmly in bullish territory at RSI 64.2. Initiate a buy position with a stop loss set at 1614.56 to capitalize on the ongoing upward move."
+                    </p>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between items-center text-xs text-slate-500 font-mono">
+                    <span>Slope: 0.037</span>
+                    <a href="https://in.tradingview.com/chart/?symbol=NSE:RUBICON" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+                        View Chart ↗
+                    </a>
+                </div>
+            </div>
+            
+            <div class="stock-card glass rounded-xl p-5 flex flex-col card-hover border-t-4 border-t-red-500" 
+                 data-rsi="61.9" data-adx="66.7" data-price="4400.0" data-slope="0.037206223702414">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="text-xl font-bold text-white tracking-wide">YASHO</h3>
+                        <div class="text-slate-300 font-mono text-lg mt-1">₹4,400.00</div>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-bold rounded border bg-red-500/20 text-red-400 border-red-500/30">CAUTION / EXIT</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-4 text-sm bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                    <div><span class="text-slate-400 block text-xs uppercase">RSI (14)</span><span class="font-semibold text-white">61.9</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">ADX (14)</span><span class="font-semibold text-white">66.7</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">Stop Loss</span><span class="font-semibold text-orange-400">₹4,001.40</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">TV Signal</span><span class="font-semibold text-blue-400">UNKNOWN</span></div>
+                </div>
+                
+                <div class="flex-grow">
+                    <p class="text-slate-300 text-sm leading-relaxed border-l-2 border-slate-600 pl-3 italic">
+                        "An extremely high ADX of 66.7 signals a powerful trend, though such extreme levels warrant caution for a temporary pause despite healthy RSI. Enter cautiously on dips while strictly maintaining a stop loss at 4001.4."
+                    </p>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between items-center text-xs text-slate-500 font-mono">
+                    <span>Slope: 0.037</span>
+                    <a href="https://in.tradingview.com/chart/?symbol=NSE:YASHO" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+                        View Chart ↗
+                    </a>
+                </div>
+            </div>
+            
+            <div class="stock-card glass rounded-xl p-5 flex flex-col card-hover border-t-4 border-t-red-500" 
+                 data-rsi="64.0" data-adx="50.5" data-price="1617.6" data-slope="0.03719908908872926">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="text-xl font-bold text-white tracking-wide">ADOR</h3>
+                        <div class="text-slate-300 font-mono text-lg mt-1">₹1,617.60</div>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-bold rounded border bg-red-500/20 text-red-400 border-red-500/30">CAUTION / EXIT</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-4 text-sm bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                    <div><span class="text-slate-400 block text-xs uppercase">RSI (14)</span><span class="font-semibold text-white">64.0</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">ADX (14)</span><span class="font-semibold text-white">50.5</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">Stop Loss</span><span class="font-semibold text-orange-400">₹1,516.71</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">TV Signal</span><span class="font-semibold text-blue-400">UNKNOWN</span></div>
+                </div>
+                
+                <div class="flex-grow">
+                    <p class="text-slate-300 text-sm leading-relaxed border-l-2 border-slate-600 pl-3 italic">
+                        "Strong trending strength with an ADX of 50.5 and RSI at 64 presents a solid bullish opportunity above 1617.6. Exercise caution and verify live trading volume before entry as the volume ratio is currently flat."
+                    </p>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between items-center text-xs text-slate-500 font-mono">
+                    <span>Slope: 0.037</span>
+                    <a href="https://in.tradingview.com/chart/?symbol=NSE:ADOR" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+                        View Chart ↗
+                    </a>
+                </div>
+            </div>
+            
+            <div class="stock-card glass rounded-xl p-5 flex flex-col card-hover border-t-4 border-t-red-500" 
+                 data-rsi="50.2" data-adx="34.7" data-price="620.55" data-slope="0.03717075554026777">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="text-xl font-bold text-white tracking-wide">SHREEJISPG</h3>
+                        <div class="text-slate-300 font-mono text-lg mt-1">₹620.55</div>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-bold rounded border bg-red-500/20 text-red-400 border-red-500/30">CAUTION / EXIT</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-4 text-sm bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                    <div><span class="text-slate-400 block text-xs uppercase">RSI (14)</span><span class="font-semibold text-white">50.2</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">ADX (14)</span><span class="font-semibold text-white">34.7</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">Stop Loss</span><span class="font-semibold text-orange-400">₹580.31</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">TV Signal</span><span class="font-semibold text-blue-400">UNKNOWN</span></div>
+                </div>
+                
+                <div class="flex-grow">
+                    <p class="text-slate-300 text-sm leading-relaxed border-l-2 border-slate-600 pl-3 italic">
+                        "The stock shows an established trend via ADX at 34.7, but a neutral RSI of 50.2 indicates a lack of immediate buying momentum. Wait for a breakout with clear volume confirmation before initiating fresh long positions."
+                    </p>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between items-center text-xs text-slate-500 font-mono">
+                    <span>Slope: 0.037</span>
+                    <a href="https://in.tradingview.com/chart/?symbol=NSE:SHREEJISPG" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+                        View Chart ↗
+                    </a>
+                </div>
+            </div>
+            
+            <div class="stock-card glass rounded-xl p-5 flex flex-col card-hover border-t-4 border-t-red-500" 
+                 data-rsi="63.1" data-adx="45.0" data-price="335.85" data-slope="0.037156491103174906">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="text-xl font-bold text-white tracking-wide">QUESS</h3>
+                        <div class="text-slate-300 font-mono text-lg mt-1">₹335.85</div>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-bold rounded border bg-red-500/20 text-red-400 border-red-500/30">CAUTION / EXIT</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-4 text-sm bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                    <div><span class="text-slate-400 block text-xs uppercase">RSI (14)</span><span class="font-semibold text-white">63.1</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">ADX (14)</span><span class="font-semibold text-white">45.0</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">Stop Loss</span><span class="font-semibold text-orange-400">₹315.46</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">TV Signal</span><span class="font-semibold text-blue-400">UNKNOWN</span></div>
+                </div>
+                
+                <div class="flex-grow">
+                    <p class="text-slate-300 text-sm leading-relaxed border-l-2 border-slate-600 pl-3 italic">
+                        "Robust trend strength with an ADX of 45.0 and bullish RSI of 63.1 supports a long entry with a stop loss at 315.46. Double-check real-time volume activity before placing orders to ensure momentum sustains the move."
+                    </p>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between items-center text-xs text-slate-500 font-mono">
+                    <span>Slope: 0.037</span>
+                    <a href="https://in.tradingview.com/chart/?symbol=NSE:QUESS" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+                        View Chart ↗
+                    </a>
+                </div>
+            </div>
+            
+            <div class="stock-card glass rounded-xl p-5 flex flex-col card-hover border-t-4 border-t-red-500" 
+                 data-rsi="63.0" data-adx="35.5" data-price="815.3" data-slope="0.03712976186567794">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="text-xl font-bold text-white tracking-wide">UNIPARTS</h3>
+                        <div class="text-slate-300 font-mono text-lg mt-1">₹815.30</div>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-bold rounded border bg-red-500/20 text-red-400 border-red-500/30">CAUTION / EXIT</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-4 text-sm bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                    <div><span class="text-slate-400 block text-xs uppercase">RSI (14)</span><span class="font-semibold text-white">63.0</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">ADX (14)</span><span class="font-semibold text-white">35.5</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">Stop Loss</span><span class="font-semibold text-orange-400">₹771.84</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">TV Signal</span><span class="font-semibold text-blue-400">UNKNOWN</span></div>
+                </div>
+                
+                <div class="flex-grow">
+                    <p class="text-slate-300 text-sm leading-relaxed border-l-2 border-slate-600 pl-3 italic">
+                        "Healthy momentum driven by an RSI of 63.0 and strong ADX of 35.5 makes this an attractive buy near 815.3. Maintain strict risk management with a stop loss at 771.84 while awaiting volume confirmation."
+                    </p>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between items-center text-xs text-slate-500 font-mono">
+                    <span>Slope: 0.037</span>
+                    <a href="https://in.tradingview.com/chart/?symbol=NSE:UNIPARTS" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+                        View Chart ↗
+                    </a>
+                </div>
+            </div>
+            
+            <div class="stock-card glass rounded-xl p-5 flex flex-col card-hover border-t-4 border-t-red-500" 
+                 data-rsi="63.7" data-adx="37.1" data-price="86.75" data-slope="0.03708267897490053">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="text-xl font-bold text-white tracking-wide">IDFCFIRSTB</h3>
+                        <div class="text-slate-300 font-mono text-lg mt-1">₹86.75</div>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-bold rounded border bg-red-500/20 text-red-400 border-red-500/30">CAUTION / EXIT</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-4 text-sm bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                    <div><span class="text-slate-400 block text-xs uppercase">RSI (14)</span><span class="font-semibold text-white">63.7</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">ADX (14)</span><span class="font-semibold text-white">37.1</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">Stop Loss</span><span class="font-semibold text-orange-400">₹84.56</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">TV Signal</span><span class="font-semibold text-blue-400">UNKNOWN</span></div>
+                </div>
+                
+                <div class="flex-grow">
+                    <p class="text-slate-300 text-sm leading-relaxed border-l-2 border-slate-600 pl-3 italic">
+                        "Positive momentum with RSI at 63.7 and a strong ADX trend offers a favorable long setup with a close stop loss at 84.56. Caution is advised to confirm actual trading volumes on live charts before entering the trade."
+                    </p>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between items-center text-xs text-slate-500 font-mono">
+                    <span>Slope: 0.037</span>
+                    <a href="https://in.tradingview.com/chart/?symbol=NSE:IDFCFIRSTB" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+                        View Chart ↗
+                    </a>
+                </div>
+            </div>
+            
+            <div class="stock-card glass rounded-xl p-5 flex flex-col card-hover border-t-4 border-t-red-500" 
+                 data-rsi="48.7" data-adx="47.8" data-price="56.42" data-slope="0.03699771498574234">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="text-xl font-bold text-white tracking-wide">SANGINITA</h3>
+                        <div class="text-slate-300 font-mono text-lg mt-1">₹56.42</div>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-bold rounded border bg-red-500/20 text-red-400 border-red-500/30">CAUTION / EXIT</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-4 text-sm bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                    <div><span class="text-slate-400 block text-xs uppercase">RSI (14)</span><span class="font-semibold text-white">48.7</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">ADX (14)</span><span class="font-semibold text-white">47.8</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">Stop Loss</span><span class="font-semibold text-orange-400">₹53.54</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">TV Signal</span><span class="font-semibold text-blue-400">UNKNOWN</span></div>
+                </div>
+                
+                <div class="flex-grow">
+                    <p class="text-slate-300 text-sm leading-relaxed border-l-2 border-slate-600 pl-3 italic">
+                        "High ADX of 47.8 reflects a strong underlying trend, but neutral RSI at 48.7 suggests ongoing consolidation. Exercise caution and wait for a volume-backed breakout before entering, keeping a strict stop loss at 53.54."
+                    </p>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between items-center text-xs text-slate-500 font-mono">
+                    <span>Slope: 0.037</span>
+                    <a href="https://in.tradingview.com/chart/?symbol=NSE:SANGINITA" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+                        View Chart ↗
+                    </a>
+                </div>
+            </div>
+            
+            <div class="stock-card glass rounded-xl p-5 flex flex-col card-hover border-t-4 border-t-red-500" 
+                 data-rsi="54.8" data-adx="27.1" data-price="385.45" data-slope="0.036991817101728754">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="text-xl font-bold text-white tracking-wide">MONARCH</h3>
+                        <div class="text-slate-300 font-mono text-lg mt-1">₹385.45</div>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-bold rounded border bg-red-500/20 text-red-400 border-red-500/30">CAUTION / EXIT</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-4 text-sm bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                    <div><span class="text-slate-400 block text-xs uppercase">RSI (14)</span><span class="font-semibold text-white">54.8</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">ADX (14)</span><span class="font-semibold text-white">27.1</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">Stop Loss</span><span class="font-semibold text-orange-400">₹360.45</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">TV Signal</span><span class="font-semibold text-blue-400">UNKNOWN</span></div>
+                </div>
+                
+                <div class="flex-grow">
+                    <p class="text-slate-300 text-sm leading-relaxed border-l-2 border-slate-600 pl-3 italic">
+                        "RSI at 54.8 and ADX at 27.1 indicate steady momentum building for a potential upside move. Consider a disciplined entry on volume confirmation while keeping a stop loss at 360.45 to manage risk."
+                    </p>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between items-center text-xs text-slate-500 font-mono">
+                    <span>Slope: 0.037</span>
+                    <a href="https://in.tradingview.com/chart/?symbol=NSE:MONARCH" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+                        View Chart ↗
+                    </a>
+                </div>
+            </div>
+            
+            <div class="stock-card glass rounded-xl p-5 flex flex-col card-hover border-t-4 border-t-red-500" 
+                 data-rsi="44.7" data-adx="35.6" data-price="2121.8" data-slope="0.03698310798059047">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="text-xl font-bold text-white tracking-wide">SPECTRUM</h3>
+                        <div class="text-slate-300 font-mono text-lg mt-1">₹2,121.80</div>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-bold rounded border bg-red-500/20 text-red-400 border-red-500/30">CAUTION / EXIT</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-4 text-sm bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                    <div><span class="text-slate-400 block text-xs uppercase">RSI (14)</span><span class="font-semibold text-white">44.7</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">ADX (14)</span><span class="font-semibold text-white">35.6</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">Stop Loss</span><span class="font-semibold text-orange-400">₹1,915.99</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">TV Signal</span><span class="font-semibold text-blue-400">UNKNOWN</span></div>
+                </div>
+                
+                <div class="flex-grow">
+                    <p class="text-slate-300 text-sm leading-relaxed border-l-2 border-slate-600 pl-3 italic">
+                        "High ADX of 35.6 signals an established directional trend, though a sluggish RSI of 44.7 hints at underlying weakness. Avoid fresh longs until buying interest resumes, maintaining a strict risk limit at the 1915.99 stop loss."
+                    </p>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between items-center text-xs text-slate-500 font-mono">
+                    <span>Slope: 0.037</span>
+                    <a href="https://in.tradingview.com/chart/?symbol=NSE:SPECTRUM" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+                        View Chart ↗
+                    </a>
+                </div>
+            </div>
+            
+            <div class="stock-card glass rounded-xl p-5 flex flex-col card-hover border-t-4 border-t-red-500" 
+                 data-rsi="46.4" data-adx="41.4" data-price="2367.8" data-slope="0.036898985474553087">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="text-xl font-bold text-white tracking-wide">HESTERBIO</h3>
+                        <div class="text-slate-300 font-mono text-lg mt-1">₹2,367.80</div>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-bold rounded border bg-red-500/20 text-red-400 border-red-500/30">CAUTION / EXIT</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-4 text-sm bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                    <div><span class="text-slate-400 block text-xs uppercase">RSI (14)</span><span class="font-semibold text-white">46.4</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">ADX (14)</span><span class="font-semibold text-white">41.4</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">Stop Loss</span><span class="font-semibold text-orange-400">₹2,231.03</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">TV Signal</span><span class="font-semibold text-blue-400">UNKNOWN</span></div>
+                </div>
+                
+                <div class="flex-grow">
+                    <p class="text-slate-300 text-sm leading-relaxed border-l-2 border-slate-600 pl-3 italic">
+                        "A strong ADX of 41.4 confirms high trend strength, but an RSI below 50 indicates the current bias remains defensive. Exercise caution and wait for a clear reversal pattern before taking positions above the 2231.03 stop loss."
+                    </p>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between items-center text-xs text-slate-500 font-mono">
+                    <span>Slope: 0.037</span>
+                    <a href="https://in.tradingview.com/chart/?symbol=NSE:HESTERBIO" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+                        View Chart ↗
+                    </a>
+                </div>
+            </div>
+            
+            <div class="stock-card glass rounded-xl p-5 flex flex-col card-hover border-t-4 border-t-red-500" 
+                 data-rsi="52.1" data-adx="26.5" data-price="51.4" data-slope="0.0368165455341576">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="text-xl font-bold text-white tracking-wide">MOHEALTH</h3>
+                        <div class="text-slate-300 font-mono text-lg mt-1">₹51.40</div>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-bold rounded border bg-red-500/20 text-red-400 border-red-500/30">CAUTION / EXIT</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-4 text-sm bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                    <div><span class="text-slate-400 block text-xs uppercase">RSI (14)</span><span class="font-semibold text-white">52.1</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">ADX (14)</span><span class="font-semibold text-white">26.5</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">Stop Loss</span><span class="font-semibold text-orange-400">₹49.86</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">TV Signal</span><span class="font-semibold text-blue-400">UNKNOWN</span></div>
+                </div>
+                
+                <div class="flex-grow">
+                    <p class="text-slate-300 text-sm leading-relaxed border-l-2 border-slate-600 pl-3 italic">
+                        "RSI at 52.1 and ADX at 26.5 present a stable, low-risk setup with mild bullish momentum. Consider a tactical entry given the tight risk profile, strictly holding 49.86 as the stop loss."
+                    </p>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between items-center text-xs text-slate-500 font-mono">
+                    <span>Slope: 0.037</span>
+                    <a href="https://in.tradingview.com/chart/?symbol=NSE:MOHEALTH" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+                        View Chart ↗
+                    </a>
+                </div>
+            </div>
+            
+            <div class="stock-card glass rounded-xl p-5 flex flex-col card-hover border-t-4 border-t-red-500" 
+                 data-rsi="61.1" data-adx="45.7" data-price="2497.4" data-slope="0.036763548423799974">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="text-xl font-bold text-white tracking-wide">SJS</h3>
+                        <div class="text-slate-300 font-mono text-lg mt-1">₹2,497.40</div>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-bold rounded border bg-red-500/20 text-red-400 border-red-500/30">CAUTION / EXIT</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-4 text-sm bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                    <div><span class="text-slate-400 block text-xs uppercase">RSI (14)</span><span class="font-semibold text-white">61.1</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">ADX (14)</span><span class="font-semibold text-white">45.7</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">Stop Loss</span><span class="font-semibold text-orange-400">₹2,361.72</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">TV Signal</span><span class="font-semibold text-blue-400">UNKNOWN</span></div>
+                </div>
+                
+                <div class="flex-grow">
+                    <p class="text-slate-300 text-sm leading-relaxed border-l-2 border-slate-600 pl-3 italic">
+                        "Technical setup: RSI 61.1, ADX 45.7, Slope 0.037. Stop-loss at Rs 2361.72."
+                    </p>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between items-center text-xs text-slate-500 font-mono">
+                    <span>Slope: 0.037</span>
+                    <a href="https://in.tradingview.com/chart/?symbol=NSE:SJS" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+                        View Chart ↗
+                    </a>
+                </div>
+            </div>
+            
+            <div class="stock-card glass rounded-xl p-5 flex flex-col card-hover border-t-4 border-t-red-500" 
+                 data-rsi="58.3" data-adx="28.7" data-price="876.9" data-slope="0.0367433658124111">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="text-xl font-bold text-white tracking-wide">RPTECH</h3>
+                        <div class="text-slate-300 font-mono text-lg mt-1">₹876.90</div>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-bold rounded border bg-red-500/20 text-red-400 border-red-500/30">CAUTION / EXIT</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-4 text-sm bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                    <div><span class="text-slate-400 block text-xs uppercase">RSI (14)</span><span class="font-semibold text-white">58.3</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">ADX (14)</span><span class="font-semibold text-white">28.7</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">Stop Loss</span><span class="font-semibold text-orange-400">₹818.79</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">TV Signal</span><span class="font-semibold text-blue-400">UNKNOWN</span></div>
+                </div>
+                
+                <div class="flex-grow">
+                    <p class="text-slate-300 text-sm leading-relaxed border-l-2 border-slate-600 pl-3 italic">
+                        "Technical setup: RSI 58.3, ADX 28.7, Slope 0.037. Stop-loss at Rs 818.79."
+                    </p>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between items-center text-xs text-slate-500 font-mono">
+                    <span>Slope: 0.037</span>
+                    <a href="https://in.tradingview.com/chart/?symbol=NSE:RPTECH" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+                        View Chart ↗
+                    </a>
+                </div>
+            </div>
+            
+            <div class="stock-card glass rounded-xl p-5 flex flex-col card-hover border-t-4 border-t-red-500" 
+                 data-rsi="62.9" data-adx="50.2" data-price="10135.5" data-slope="0.036701975894870204">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="text-xl font-bold text-white tracking-wide">TASTYBITE</h3>
+                        <div class="text-slate-300 font-mono text-lg mt-1">₹10,135.50</div>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-bold rounded border bg-red-500/20 text-red-400 border-red-500/30">CAUTION / EXIT</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-4 text-sm bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                    <div><span class="text-slate-400 block text-xs uppercase">RSI (14)</span><span class="font-semibold text-white">62.9</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">ADX (14)</span><span class="font-semibold text-white">50.2</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">Stop Loss</span><span class="font-semibold text-orange-400">₹9,477.89</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">TV Signal</span><span class="font-semibold text-blue-400">UNKNOWN</span></div>
+                </div>
+                
+                <div class="flex-grow">
+                    <p class="text-slate-300 text-sm leading-relaxed border-l-2 border-slate-600 pl-3 italic">
+                        "Technical setup: RSI 62.9, ADX 50.2, Slope 0.037. Stop-loss at Rs 9477.89."
+                    </p>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between items-center text-xs text-slate-500 font-mono">
+                    <span>Slope: 0.037</span>
+                    <a href="https://in.tradingview.com/chart/?symbol=NSE:TASTYBITE" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+                        View Chart ↗
+                    </a>
+                </div>
+            </div>
+            
+            <div class="stock-card glass rounded-xl p-5 flex flex-col card-hover border-t-4 border-t-red-500" 
+                 data-rsi="56.2" data-adx="46.6" data-price="3601.7" data-slope="0.03666388938747124">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="text-xl font-bold text-white tracking-wide">STYLAMIND</h3>
+                        <div class="text-slate-300 font-mono text-lg mt-1">₹3,601.70</div>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-bold rounded border bg-red-500/20 text-red-400 border-red-500/30">CAUTION / EXIT</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-4 text-sm bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                    <div><span class="text-slate-400 block text-xs uppercase">RSI (14)</span><span class="font-semibold text-white">56.2</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">ADX (14)</span><span class="font-semibold text-white">46.6</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">Stop Loss</span><span class="font-semibold text-orange-400">₹3,378.24</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">TV Signal</span><span class="font-semibold text-blue-400">UNKNOWN</span></div>
+                </div>
+                
+                <div class="flex-grow">
+                    <p class="text-slate-300 text-sm leading-relaxed border-l-2 border-slate-600 pl-3 italic">
+                        "Technical setup: RSI 56.2, ADX 46.6, Slope 0.037. Stop-loss at Rs 3378.24."
+                    </p>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between items-center text-xs text-slate-500 font-mono">
+                    <span>Slope: 0.037</span>
+                    <a href="https://in.tradingview.com/chart/?symbol=NSE:STYLAMIND" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+                        View Chart ↗
+                    </a>
+                </div>
+            </div>
+            
+            <div class="stock-card glass rounded-xl p-5 flex flex-col card-hover border-t-4 border-t-red-500" 
+                 data-rsi="61.3" data-adx="31.3" data-price="445.0" data-slope="0.03664709056540133">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="text-xl font-bold text-white tracking-wide">BLUEWATER</h3>
+                        <div class="text-slate-300 font-mono text-lg mt-1">₹445.00</div>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-bold rounded border bg-red-500/20 text-red-400 border-red-500/30">CAUTION / EXIT</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-4 text-sm bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                    <div><span class="text-slate-400 block text-xs uppercase">RSI (14)</span><span class="font-semibold text-white">61.3</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">ADX (14)</span><span class="font-semibold text-white">31.3</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">Stop Loss</span><span class="font-semibold text-orange-400">₹413.02</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">TV Signal</span><span class="font-semibold text-blue-400">UNKNOWN</span></div>
+                </div>
+                
+                <div class="flex-grow">
+                    <p class="text-slate-300 text-sm leading-relaxed border-l-2 border-slate-600 pl-3 italic">
+                        "Technical setup: RSI 61.3, ADX 31.3, Slope 0.037. Stop-loss at Rs 413.02."
+                    </p>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between items-center text-xs text-slate-500 font-mono">
+                    <span>Slope: 0.037</span>
+                    <a href="https://in.tradingview.com/chart/?symbol=NSE:BLUEWATER" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+                        View Chart ↗
+                    </a>
+                </div>
+            </div>
+            
+            <div class="stock-card glass rounded-xl p-5 flex flex-col card-hover border-t-4 border-t-red-500" 
+                 data-rsi="59.2" data-adx="46.6" data-price="7417.5" data-slope="0.036627632737143576">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="text-xl font-bold text-white tracking-wide">VADILALIND</h3>
+                        <div class="text-slate-300 font-mono text-lg mt-1">₹7,417.50</div>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-bold rounded border bg-red-500/20 text-red-400 border-red-500/30">CAUTION / EXIT</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-4 text-sm bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                    <div><span class="text-slate-400 block text-xs uppercase">RSI (14)</span><span class="font-semibold text-white">59.2</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">ADX (14)</span><span class="font-semibold text-white">46.6</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">Stop Loss</span><span class="font-semibold text-orange-400">₹6,976.63</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">TV Signal</span><span class="font-semibold text-blue-400">UNKNOWN</span></div>
+                </div>
+                
+                <div class="flex-grow">
+                    <p class="text-slate-300 text-sm leading-relaxed border-l-2 border-slate-600 pl-3 italic">
+                        "Technical setup: RSI 59.2, ADX 46.6, Slope 0.037. Stop-loss at Rs 6976.63."
+                    </p>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between items-center text-xs text-slate-500 font-mono">
+                    <span>Slope: 0.037</span>
+                    <a href="https://in.tradingview.com/chart/?symbol=NSE:VADILALIND" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+                        View Chart ↗
+                    </a>
+                </div>
+            </div>
+            
+            <div class="stock-card glass rounded-xl p-5 flex flex-col card-hover border-t-4 border-t-red-500" 
+                 data-rsi="61.2" data-adx="45.0" data-price="1151.8" data-slope="0.03661951500534944">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="text-xl font-bold text-white tracking-wide">INDIGOPNTS</h3>
+                        <div class="text-slate-300 font-mono text-lg mt-1">₹1,151.80</div>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-bold rounded border bg-red-500/20 text-red-400 border-red-500/30">CAUTION / EXIT</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-4 text-sm bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                    <div><span class="text-slate-400 block text-xs uppercase">RSI (14)</span><span class="font-semibold text-white">61.2</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">ADX (14)</span><span class="font-semibold text-white">45.0</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">Stop Loss</span><span class="font-semibold text-orange-400">₹1,093.27</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">TV Signal</span><span class="font-semibold text-blue-400">UNKNOWN</span></div>
+                </div>
+                
+                <div class="flex-grow">
+                    <p class="text-slate-300 text-sm leading-relaxed border-l-2 border-slate-600 pl-3 italic">
+                        "Technical setup: RSI 61.2, ADX 45.0, Slope 0.037. Stop-loss at Rs 1093.27."
+                    </p>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between items-center text-xs text-slate-500 font-mono">
+                    <span>Slope: 0.037</span>
+                    <a href="https://in.tradingview.com/chart/?symbol=NSE:INDIGOPNTS" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+                        View Chart ↗
+                    </a>
+                </div>
+            </div>
+            
+            <div class="stock-card glass rounded-xl p-5 flex flex-col card-hover border-t-4 border-t-red-500" 
+                 data-rsi="63.5" data-adx="40.9" data-price="3876.9" data-slope="0.03660863649724363">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="text-xl font-bold text-white tracking-wide">SANSERA</h3>
+                        <div class="text-slate-300 font-mono text-lg mt-1">₹3,876.90</div>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-bold rounded border bg-red-500/20 text-red-400 border-red-500/30">CAUTION / EXIT</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-4 text-sm bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                    <div><span class="text-slate-400 block text-xs uppercase">RSI (14)</span><span class="font-semibold text-white">63.5</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">ADX (14)</span><span class="font-semibold text-white">40.9</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">Stop Loss</span><span class="font-semibold text-orange-400">₹3,663.25</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">TV Signal</span><span class="font-semibold text-blue-400">UNKNOWN</span></div>
+                </div>
+                
+                <div class="flex-grow">
+                    <p class="text-slate-300 text-sm leading-relaxed border-l-2 border-slate-600 pl-3 italic">
+                        "Technical setup: RSI 63.5, ADX 40.9, Slope 0.037. Stop-loss at Rs 3663.25."
+                    </p>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between items-center text-xs text-slate-500 font-mono">
+                    <span>Slope: 0.037</span>
+                    <a href="https://in.tradingview.com/chart/?symbol=NSE:SANSERA" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+                        View Chart ↗
+                    </a>
+                </div>
+            </div>
+            
+            <div class="stock-card glass rounded-xl p-5 flex flex-col card-hover border-t-4 border-t-red-500" 
+                 data-rsi="61.5" data-adx="37.6" data-price="226.31" data-slope="0.0365589283863825">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="text-xl font-bold text-white tracking-wide">SMARTLINK</h3>
+                        <div class="text-slate-300 font-mono text-lg mt-1">₹226.31</div>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-bold rounded border bg-red-500/20 text-red-400 border-red-500/30">CAUTION / EXIT</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-4 text-sm bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                    <div><span class="text-slate-400 block text-xs uppercase">RSI (14)</span><span class="font-semibold text-white">61.5</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">ADX (14)</span><span class="font-semibold text-white">37.6</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">Stop Loss</span><span class="font-semibold text-orange-400">₹211.86</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">TV Signal</span><span class="font-semibold text-blue-400">UNKNOWN</span></div>
+                </div>
+                
+                <div class="flex-grow">
+                    <p class="text-slate-300 text-sm leading-relaxed border-l-2 border-slate-600 pl-3 italic">
+                        "Technical setup: RSI 61.5, ADX 37.6, Slope 0.037. Stop-loss at Rs 211.86."
+                    </p>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between items-center text-xs text-slate-500 font-mono">
+                    <span>Slope: 0.037</span>
+                    <a href="https://in.tradingview.com/chart/?symbol=NSE:SMARTLINK" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+                        View Chart ↗
+                    </a>
+                </div>
+            </div>
+            
+            <div class="stock-card glass rounded-xl p-5 flex flex-col card-hover border-t-4 border-t-red-500" 
+                 data-rsi="52.2" data-adx="33.1" data-price="459.6" data-slope="0.03652356489775775">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="text-xl font-bold text-white tracking-wide">EXIDEIND</h3>
+                        <div class="text-slate-300 font-mono text-lg mt-1">₹459.60</div>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-bold rounded border bg-red-500/20 text-red-400 border-red-500/30">CAUTION / EXIT</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-4 text-sm bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                    <div><span class="text-slate-400 block text-xs uppercase">RSI (14)</span><span class="font-semibold text-white">52.2</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">ADX (14)</span><span class="font-semibold text-white">33.1</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">Stop Loss</span><span class="font-semibold text-orange-400">₹438.47</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">TV Signal</span><span class="font-semibold text-blue-400">UNKNOWN</span></div>
+                </div>
+                
+                <div class="flex-grow">
+                    <p class="text-slate-300 text-sm leading-relaxed border-l-2 border-slate-600 pl-3 italic">
+                        "Technical setup: RSI 52.2, ADX 33.1, Slope 0.037. Stop-loss at Rs 438.47."
+                    </p>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between items-center text-xs text-slate-500 font-mono">
+                    <span>Slope: 0.037</span>
+                    <a href="https://in.tradingview.com/chart/?symbol=NSE:EXIDEIND" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+                        View Chart ↗
+                    </a>
+                </div>
+            </div>
+            
+            <div class="stock-card glass rounded-xl p-5 flex flex-col card-hover border-t-4 border-t-red-500" 
+                 data-rsi="62.5" data-adx="63.3" data-price="721.15" data-slope="0.0365158658462926">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="text-xl font-bold text-white tracking-wide">CYIENTDLM</h3>
+                        <div class="text-slate-300 font-mono text-lg mt-1">₹721.15</div>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-bold rounded border bg-red-500/20 text-red-400 border-red-500/30">CAUTION / EXIT</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-4 text-sm bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                    <div><span class="text-slate-400 block text-xs uppercase">RSI (14)</span><span class="font-semibold text-white">62.5</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">ADX (14)</span><span class="font-semibold text-white">63.3</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">Stop Loss</span><span class="font-semibold text-orange-400">₹671.43</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">TV Signal</span><span class="font-semibold text-blue-400">UNKNOWN</span></div>
+                </div>
+                
+                <div class="flex-grow">
+                    <p class="text-slate-300 text-sm leading-relaxed border-l-2 border-slate-600 pl-3 italic">
+                        "Technical setup: RSI 62.5, ADX 63.3, Slope 0.037. Stop-loss at Rs 671.43."
+                    </p>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between items-center text-xs text-slate-500 font-mono">
+                    <span>Slope: 0.037</span>
+                    <a href="https://in.tradingview.com/chart/?symbol=NSE:CYIENTDLM" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+                        View Chart ↗
+                    </a>
+                </div>
+            </div>
+            
+            <div class="stock-card glass rounded-xl p-5 flex flex-col card-hover border-t-4 border-t-red-500" 
+                 data-rsi="47.9" data-adx="34.8" data-price="505.4" data-slope="0.036498105611546955">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="text-xl font-bold text-white tracking-wide">SUPRAJIT</h3>
+                        <div class="text-slate-300 font-mono text-lg mt-1">₹505.40</div>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-bold rounded border bg-red-500/20 text-red-400 border-red-500/30">CAUTION / EXIT</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-4 text-sm bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                    <div><span class="text-slate-400 block text-xs uppercase">RSI (14)</span><span class="font-semibold text-white">47.9</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">ADX (14)</span><span class="font-semibold text-white">34.8</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">Stop Loss</span><span class="font-semibold text-orange-400">₹482.06</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">TV Signal</span><span class="font-semibold text-blue-400">UNKNOWN</span></div>
+                </div>
+                
+                <div class="flex-grow">
+                    <p class="text-slate-300 text-sm leading-relaxed border-l-2 border-slate-600 pl-3 italic">
+                        "Technical setup: RSI 47.9, ADX 34.8, Slope 0.036. Stop-loss at Rs 482.06."
+                    </p>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between items-center text-xs text-slate-500 font-mono">
+                    <span>Slope: 0.036</span>
+                    <a href="https://in.tradingview.com/chart/?symbol=NSE:SUPRAJIT" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+                        View Chart ↗
+                    </a>
+                </div>
+            </div>
+            
+            <div class="stock-card glass rounded-xl p-5 flex flex-col card-hover border-t-4 border-t-red-500" 
+                 data-rsi="46.5" data-adx="31.9" data-price="488.9" data-slope="0.03647242881687117">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="text-xl font-bold text-white tracking-wide">GCSL</h3>
+                        <div class="text-slate-300 font-mono text-lg mt-1">₹488.90</div>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-bold rounded border bg-red-500/20 text-red-400 border-red-500/30">CAUTION / EXIT</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-4 text-sm bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                    <div><span class="text-slate-400 block text-xs uppercase">RSI (14)</span><span class="font-semibold text-white">46.5</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">ADX (14)</span><span class="font-semibold text-white">31.9</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">Stop Loss</span><span class="font-semibold text-orange-400">₹446.31</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">TV Signal</span><span class="font-semibold text-blue-400">UNKNOWN</span></div>
+                </div>
+                
+                <div class="flex-grow">
+                    <p class="text-slate-300 text-sm leading-relaxed border-l-2 border-slate-600 pl-3 italic">
+                        "Technical setup: RSI 46.5, ADX 31.9, Slope 0.036. Stop-loss at Rs 446.31."
+                    </p>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between items-center text-xs text-slate-500 font-mono">
+                    <span>Slope: 0.036</span>
+                    <a href="https://in.tradingview.com/chart/?symbol=NSE:GCSL" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+                        View Chart ↗
+                    </a>
+                </div>
+            </div>
+            
+            <div class="stock-card glass rounded-xl p-5 flex flex-col card-hover border-t-4 border-t-red-500" 
+                 data-rsi="53.3" data-adx="35.2" data-price="677.3" data-slope="0.03634646936950134">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="text-xl font-bold text-white tracking-wide">SOTL</h3>
+                        <div class="text-slate-300 font-mono text-lg mt-1">₹677.30</div>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-bold rounded border bg-red-500/20 text-red-400 border-red-500/30">CAUTION / EXIT</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-4 text-sm bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                    <div><span class="text-slate-400 block text-xs uppercase">RSI (14)</span><span class="font-semibold text-white">53.3</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">ADX (14)</span><span class="font-semibold text-white">35.2</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">Stop Loss</span><span class="font-semibold text-orange-400">₹622.52</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">TV Signal</span><span class="font-semibold text-blue-400">UNKNOWN</span></div>
+                </div>
+                
+                <div class="flex-grow">
+                    <p class="text-slate-300 text-sm leading-relaxed border-l-2 border-slate-600 pl-3 italic">
+                        "Technical setup: RSI 53.3, ADX 35.2, Slope 0.036. Stop-loss at Rs 622.52."
+                    </p>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between items-center text-xs text-slate-500 font-mono">
+                    <span>Slope: 0.036</span>
+                    <a href="https://in.tradingview.com/chart/?symbol=NSE:SOTL" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+                        View Chart ↗
+                    </a>
+                </div>
+            </div>
+            
+            <div class="stock-card glass rounded-xl p-5 flex flex-col card-hover border-t-4 border-t-red-500" 
+                 data-rsi="46.1" data-adx="26.3" data-price="1034.9" data-slope="0.03631250025205672">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="text-xl font-bold text-white tracking-wide">TINNARUBR</h3>
+                        <div class="text-slate-300 font-mono text-lg mt-1">₹1,034.90</div>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-bold rounded border bg-red-500/20 text-red-400 border-red-500/30">CAUTION / EXIT</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-4 text-sm bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                    <div><span class="text-slate-400 block text-xs uppercase">RSI (14)</span><span class="font-semibold text-white">46.1</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">ADX (14)</span><span class="font-semibold text-white">26.3</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">Stop Loss</span><span class="font-semibold text-orange-400">₹954.46</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">TV Signal</span><span class="font-semibold text-blue-400">UNKNOWN</span></div>
+                </div>
+                
+                <div class="flex-grow">
+                    <p class="text-slate-300 text-sm leading-relaxed border-l-2 border-slate-600 pl-3 italic">
+                        "Technical setup: RSI 46.1, ADX 26.3, Slope 0.036. Stop-loss at Rs 954.46."
+                    </p>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between items-center text-xs text-slate-500 font-mono">
+                    <span>Slope: 0.036</span>
+                    <a href="https://in.tradingview.com/chart/?symbol=NSE:TINNARUBR" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+                        View Chart ↗
+                    </a>
+                </div>
+            </div>
+            
+            <div class="stock-card glass rounded-xl p-5 flex flex-col card-hover border-t-4 border-t-red-500" 
+                 data-rsi="63.1" data-adx="27.6" data-price="1513.3" data-slope="0.0362781843354825">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="text-xl font-bold text-white tracking-wide">SENORES</h3>
+                        <div class="text-slate-300 font-mono text-lg mt-1">₹1,513.30</div>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-bold rounded border bg-red-500/20 text-red-400 border-red-500/30">CAUTION / EXIT</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-4 text-sm bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                    <div><span class="text-slate-400 block text-xs uppercase">RSI (14)</span><span class="font-semibold text-white">63.1</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">ADX (14)</span><span class="font-semibold text-white">27.6</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">Stop Loss</span><span class="font-semibold text-orange-400">₹1,427.93</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">TV Signal</span><span class="font-semibold text-blue-400">UNKNOWN</span></div>
+                </div>
+                
+                <div class="flex-grow">
+                    <p class="text-slate-300 text-sm leading-relaxed border-l-2 border-slate-600 pl-3 italic">
+                        "Technical setup: RSI 63.1, ADX 27.6, Slope 0.036. Stop-loss at Rs 1427.93."
+                    </p>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between items-center text-xs text-slate-500 font-mono">
+                    <span>Slope: 0.036</span>
+                    <a href="https://in.tradingview.com/chart/?symbol=NSE:SENORES" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+                        View Chart ↗
+                    </a>
+                </div>
+            </div>
+            
+            <div class="stock-card glass rounded-xl p-5 flex flex-col card-hover border-t-4 border-t-red-500" 
+                 data-rsi="59.9" data-adx="41.4" data-price="361.0" data-slope="0.03627731032024992">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="text-xl font-bold text-white tracking-wide">FEDERALBNK</h3>
+                        <div class="text-slate-300 font-mono text-lg mt-1">₹361.00</div>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-bold rounded border bg-red-500/20 text-red-400 border-red-500/30">CAUTION / EXIT</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-4 text-sm bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                    <div><span class="text-slate-400 block text-xs uppercase">RSI (14)</span><span class="font-semibold text-white">59.9</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">ADX (14)</span><span class="font-semibold text-white">41.4</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">Stop Loss</span><span class="font-semibold text-orange-400">₹351.08</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">TV Signal</span><span class="font-semibold text-blue-400">UNKNOWN</span></div>
+                </div>
+                
+                <div class="flex-grow">
+                    <p class="text-slate-300 text-sm leading-relaxed border-l-2 border-slate-600 pl-3 italic">
+                        "Technical setup: RSI 59.9, ADX 41.4, Slope 0.036. Stop-loss at Rs 351.08."
+                    </p>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between items-center text-xs text-slate-500 font-mono">
+                    <span>Slope: 0.036</span>
+                    <a href="https://in.tradingview.com/chart/?symbol=NSE:FEDERALBNK" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+                        View Chart ↗
+                    </a>
+                </div>
+            </div>
+            
+            <div class="stock-card glass rounded-xl p-5 flex flex-col card-hover border-t-4 border-t-red-500" 
+                 data-rsi="45.1" data-adx="31.5" data-price="482.25" data-slope="0.036239721058213145">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="text-xl font-bold text-white tracking-wide">UTSSAV</h3>
+                        <div class="text-slate-300 font-mono text-lg mt-1">₹482.25</div>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-bold rounded border bg-red-500/20 text-red-400 border-red-500/30">CAUTION / EXIT</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-4 text-sm bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                    <div><span class="text-slate-400 block text-xs uppercase">RSI (14)</span><span class="font-semibold text-white">45.1</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">ADX (14)</span><span class="font-semibold text-white">31.5</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">Stop Loss</span><span class="font-semibold text-orange-400">₹454.55</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">TV Signal</span><span class="font-semibold text-blue-400">UNKNOWN</span></div>
+                </div>
+                
+                <div class="flex-grow">
+                    <p class="text-slate-300 text-sm leading-relaxed border-l-2 border-slate-600 pl-3 italic">
+                        "Technical setup: RSI 45.1, ADX 31.5, Slope 0.036. Stop-loss at Rs 454.55."
+                    </p>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between items-center text-xs text-slate-500 font-mono">
+                    <span>Slope: 0.036</span>
+                    <a href="https://in.tradingview.com/chart/?symbol=NSE:UTSSAV" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+                        View Chart ↗
+                    </a>
+                </div>
+            </div>
+            
+            <div class="stock-card glass rounded-xl p-5 flex flex-col card-hover border-t-4 border-t-red-500" 
+                 data-rsi="54.6" data-adx="27.8" data-price="669.3" data-slope="0.03622597193996494">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="text-xl font-bold text-white tracking-wide">RISHABH</h3>
+                        <div class="text-slate-300 font-mono text-lg mt-1">₹669.30</div>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-bold rounded border bg-red-500/20 text-red-400 border-red-500/30">CAUTION / EXIT</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-4 text-sm bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                    <div><span class="text-slate-400 block text-xs uppercase">RSI (14)</span><span class="font-semibold text-white">54.6</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">ADX (14)</span><span class="font-semibold text-white">27.8</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">Stop Loss</span><span class="font-semibold text-orange-400">₹616.43</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">TV Signal</span><span class="font-semibold text-blue-400">UNKNOWN</span></div>
+                </div>
+                
+                <div class="flex-grow">
+                    <p class="text-slate-300 text-sm leading-relaxed border-l-2 border-slate-600 pl-3 italic">
+                        "Technical setup: RSI 54.6, ADX 27.8, Slope 0.036. Stop-loss at Rs 616.43."
+                    </p>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between items-center text-xs text-slate-500 font-mono">
+                    <span>Slope: 0.036</span>
+                    <a href="https://in.tradingview.com/chart/?symbol=NSE:RISHABH" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+                        View Chart ↗
+                    </a>
+                </div>
+            </div>
+            
+            <div class="stock-card glass rounded-xl p-5 flex flex-col card-hover border-t-4 border-t-red-500" 
+                 data-rsi="54.3" data-adx="30.8" data-price="392.55" data-slope="0.036217555213093076">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="text-xl font-bold text-white tracking-wide">STYL</h3>
+                        <div class="text-slate-300 font-mono text-lg mt-1">₹392.55</div>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-bold rounded border bg-red-500/20 text-red-400 border-red-500/30">CAUTION / EXIT</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-4 text-sm bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                    <div><span class="text-slate-400 block text-xs uppercase">RSI (14)</span><span class="font-semibold text-white">54.3</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">ADX (14)</span><span class="font-semibold text-white">30.8</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">Stop Loss</span><span class="font-semibold text-orange-400">₹362.35</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">TV Signal</span><span class="font-semibold text-blue-400">UNKNOWN</span></div>
+                </div>
+                
+                <div class="flex-grow">
+                    <p class="text-slate-300 text-sm leading-relaxed border-l-2 border-slate-600 pl-3 italic">
+                        "Technical setup: RSI 54.3, ADX 30.8, Slope 0.036. Stop-loss at Rs 362.35."
+                    </p>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between items-center text-xs text-slate-500 font-mono">
+                    <span>Slope: 0.036</span>
+                    <a href="https://in.tradingview.com/chart/?symbol=NSE:STYL" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+                        View Chart ↗
+                    </a>
+                </div>
+            </div>
+            
+            <div class="stock-card glass rounded-xl p-5 flex flex-col card-hover border-t-4 border-t-red-500" 
+                 data-rsi="46.4" data-adx="36.7" data-price="242.45" data-slope="0.03616997230873015">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="text-xl font-bold text-white tracking-wide">BAFNAPH</h3>
+                        <div class="text-slate-300 font-mono text-lg mt-1">₹242.45</div>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-bold rounded border bg-red-500/20 text-red-400 border-red-500/30">CAUTION / EXIT</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-4 text-sm bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                    <div><span class="text-slate-400 block text-xs uppercase">RSI (14)</span><span class="font-semibold text-white">46.4</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">ADX (14)</span><span class="font-semibold text-white">36.7</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">Stop Loss</span><span class="font-semibold text-orange-400">₹233.54</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">TV Signal</span><span class="font-semibold text-blue-400">UNKNOWN</span></div>
+                </div>
+                
+                <div class="flex-grow">
+                    <p class="text-slate-300 text-sm leading-relaxed border-l-2 border-slate-600 pl-3 italic">
+                        "Technical setup: RSI 46.4, ADX 36.7, Slope 0.036. Stop-loss at Rs 233.54."
+                    </p>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between items-center text-xs text-slate-500 font-mono">
+                    <span>Slope: 0.036</span>
+                    <a href="https://in.tradingview.com/chart/?symbol=NSE:BAFNAPH" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+                        View Chart ↗
+                    </a>
+                </div>
+            </div>
+            
+            <div class="stock-card glass rounded-xl p-5 flex flex-col card-hover border-t-4 border-t-red-500" 
+                 data-rsi="60.9" data-adx="25.6" data-price="990.05" data-slope="0.036126448297923296">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="text-xl font-bold text-white tracking-wide">RATEGAIN</h3>
+                        <div class="text-slate-300 font-mono text-lg mt-1">₹990.05</div>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-bold rounded border bg-red-500/20 text-red-400 border-red-500/30">CAUTION / EXIT</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-4 text-sm bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                    <div><span class="text-slate-400 block text-xs uppercase">RSI (14)</span><span class="font-semibold text-white">60.9</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">ADX (14)</span><span class="font-semibold text-white">25.6</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">Stop Loss</span><span class="font-semibold text-orange-400">₹926.38</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">TV Signal</span><span class="font-semibold text-blue-400">UNKNOWN</span></div>
+                </div>
+                
+                <div class="flex-grow">
+                    <p class="text-slate-300 text-sm leading-relaxed border-l-2 border-slate-600 pl-3 italic">
+                        "Technical setup: RSI 60.9, ADX 25.6, Slope 0.036. Stop-loss at Rs 926.38."
+                    </p>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between items-center text-xs text-slate-500 font-mono">
+                    <span>Slope: 0.036</span>
+                    <a href="https://in.tradingview.com/chart/?symbol=NSE:RATEGAIN" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+                        View Chart ↗
+                    </a>
+                </div>
+            </div>
+            
+            <div class="stock-card glass rounded-xl p-5 flex flex-col card-hover border-t-4 border-t-red-500" 
+                 data-rsi="62.2" data-adx="44.5" data-price="2819.3" data-slope="0.03606124387827502">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="text-xl font-bold text-white tracking-wide">GLAND</h3>
+                        <div class="text-slate-300 font-mono text-lg mt-1">₹2,819.30</div>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-bold rounded border bg-red-500/20 text-red-400 border-red-500/30">CAUTION / EXIT</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-4 text-sm bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                    <div><span class="text-slate-400 block text-xs uppercase">RSI (14)</span><span class="font-semibold text-white">62.2</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">ADX (14)</span><span class="font-semibold text-white">44.5</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">Stop Loss</span><span class="font-semibold text-orange-400">₹2,681.04</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">TV Signal</span><span class="font-semibold text-blue-400">UNKNOWN</span></div>
+                </div>
+                
+                <div class="flex-grow">
+                    <p class="text-slate-300 text-sm leading-relaxed border-l-2 border-slate-600 pl-3 italic">
+                        "Technical setup: RSI 62.2, ADX 44.5, Slope 0.036. Stop-loss at Rs 2681.04."
+                    </p>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between items-center text-xs text-slate-500 font-mono">
+                    <span>Slope: 0.036</span>
+                    <a href="https://in.tradingview.com/chart/?symbol=NSE:GLAND" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+                        View Chart ↗
+                    </a>
+                </div>
+            </div>
+            
+            <div class="stock-card glass rounded-xl p-5 flex flex-col card-hover border-t-4 border-t-red-500" 
+                 data-rsi="55.4" data-adx="34.0" data-price="727.85" data-slope="0.036058246583910034">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="text-xl font-bold text-white tracking-wide">MINDACORP</h3>
+                        <div class="text-slate-300 font-mono text-lg mt-1">₹727.85</div>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-bold rounded border bg-red-500/20 text-red-400 border-red-500/30">CAUTION / EXIT</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-4 text-sm bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                    <div><span class="text-slate-400 block text-xs uppercase">RSI (14)</span><span class="font-semibold text-white">55.4</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">ADX (14)</span><span class="font-semibold text-white">34.0</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">Stop Loss</span><span class="font-semibold text-orange-400">₹689.26</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">TV Signal</span><span class="font-semibold text-blue-400">UNKNOWN</span></div>
+                </div>
+                
+                <div class="flex-grow">
+                    <p class="text-slate-300 text-sm leading-relaxed border-l-2 border-slate-600 pl-3 italic">
+                        "Technical setup: RSI 55.4, ADX 34.0, Slope 0.036. Stop-loss at Rs 689.26."
+                    </p>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between items-center text-xs text-slate-500 font-mono">
+                    <span>Slope: 0.036</span>
+                    <a href="https://in.tradingview.com/chart/?symbol=NSE:MINDACORP" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+                        View Chart ↗
+                    </a>
+                </div>
+            </div>
+            
+            <div class="stock-card glass rounded-xl p-5 flex flex-col card-hover border-t-4 border-t-red-500" 
+                 data-rsi="46.2" data-adx="44.4" data-price="569.15" data-slope="0.03603280360053983">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="text-xl font-bold text-white tracking-wide">CENTENKA</h3>
+                        <div class="text-slate-300 font-mono text-lg mt-1">₹569.15</div>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-bold rounded border bg-red-500/20 text-red-400 border-red-500/30">CAUTION / EXIT</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-4 text-sm bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                    <div><span class="text-slate-400 block text-xs uppercase">RSI (14)</span><span class="font-semibold text-white">46.2</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">ADX (14)</span><span class="font-semibold text-white">44.4</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">Stop Loss</span><span class="font-semibold text-orange-400">₹538.25</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">TV Signal</span><span class="font-semibold text-blue-400">UNKNOWN</span></div>
+                </div>
+                
+                <div class="flex-grow">
+                    <p class="text-slate-300 text-sm leading-relaxed border-l-2 border-slate-600 pl-3 italic">
+                        "Technical setup: RSI 46.2, ADX 44.4, Slope 0.036. Stop-loss at Rs 538.25."
+                    </p>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between items-center text-xs text-slate-500 font-mono">
+                    <span>Slope: 0.036</span>
+                    <a href="https://in.tradingview.com/chart/?symbol=NSE:CENTENKA" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+                        View Chart ↗
+                    </a>
+                </div>
+            </div>
+            
+            <div class="stock-card glass rounded-xl p-5 flex flex-col card-hover border-t-4 border-t-red-500" 
+                 data-rsi="57.8" data-adx="31.1" data-price="122.49" data-slope="0.03603105674079924">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="text-xl font-bold text-white tracking-wide">GHCLTEXTIL</h3>
+                        <div class="text-slate-300 font-mono text-lg mt-1">₹122.49</div>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-bold rounded border bg-red-500/20 text-red-400 border-red-500/30">CAUTION / EXIT</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-4 text-sm bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                    <div><span class="text-slate-400 block text-xs uppercase">RSI (14)</span><span class="font-semibold text-white">57.8</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">ADX (14)</span><span class="font-semibold text-white">31.1</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">Stop Loss</span><span class="font-semibold text-orange-400">₹114.27</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">TV Signal</span><span class="font-semibold text-blue-400">UNKNOWN</span></div>
+                </div>
+                
+                <div class="flex-grow">
+                    <p class="text-slate-300 text-sm leading-relaxed border-l-2 border-slate-600 pl-3 italic">
+                        "Technical setup: RSI 57.8, ADX 31.1, Slope 0.036. Stop-loss at Rs 114.27."
+                    </p>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between items-center text-xs text-slate-500 font-mono">
+                    <span>Slope: 0.036</span>
+                    <a href="https://in.tradingview.com/chart/?symbol=NSE:GHCLTEXTIL" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+                        View Chart ↗
+                    </a>
+                </div>
+            </div>
+            
+            <div class="stock-card glass rounded-xl p-5 flex flex-col card-hover border-t-4 border-t-red-500" 
+                 data-rsi="62.5" data-adx="47.6" data-price="83.06" data-slope="0.03602920020085011">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="text-xl font-bold text-white tracking-wide">FILATEX</h3>
+                        <div class="text-slate-300 font-mono text-lg mt-1">₹83.06</div>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-bold rounded border bg-red-500/20 text-red-400 border-red-500/30">CAUTION / EXIT</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-4 text-sm bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                    <div><span class="text-slate-400 block text-xs uppercase">RSI (14)</span><span class="font-semibold text-white">62.5</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">ADX (14)</span><span class="font-semibold text-white">47.6</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">Stop Loss</span><span class="font-semibold text-orange-400">₹77.30</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">TV Signal</span><span class="font-semibold text-blue-400">UNKNOWN</span></div>
+                </div>
+                
+                <div class="flex-grow">
+                    <p class="text-slate-300 text-sm leading-relaxed border-l-2 border-slate-600 pl-3 italic">
+                        "Technical setup: RSI 62.5, ADX 47.6, Slope 0.036. Stop-loss at Rs 77.30."
+                    </p>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between items-center text-xs text-slate-500 font-mono">
+                    <span>Slope: 0.036</span>
+                    <a href="https://in.tradingview.com/chart/?symbol=NSE:FILATEX" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+                        View Chart ↗
+                    </a>
+                </div>
+            </div>
+            
+            <div class="stock-card glass rounded-xl p-5 flex flex-col card-hover border-t-4 border-t-red-500" 
+                 data-rsi="49.1" data-adx="25.9" data-price="2327.7" data-slope="0.035955212686834624">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="text-xl font-bold text-white tracking-wide">BETA</h3>
+                        <div class="text-slate-300 font-mono text-lg mt-1">₹2,327.70</div>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-bold rounded border bg-red-500/20 text-red-400 border-red-500/30">CAUTION / EXIT</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-4 text-sm bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                    <div><span class="text-slate-400 block text-xs uppercase">RSI (14)</span><span class="font-semibold text-white">49.1</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">ADX (14)</span><span class="font-semibold text-white">25.9</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">Stop Loss</span><span class="font-semibold text-orange-400">₹2,094.12</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">TV Signal</span><span class="font-semibold text-blue-400">UNKNOWN</span></div>
+                </div>
+                
+                <div class="flex-grow">
+                    <p class="text-slate-300 text-sm leading-relaxed border-l-2 border-slate-600 pl-3 italic">
+                        "Technical setup: RSI 49.1, ADX 25.9, Slope 0.036. Stop-loss at Rs 2094.12."
+                    </p>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between items-center text-xs text-slate-500 font-mono">
+                    <span>Slope: 0.036</span>
+                    <a href="https://in.tradingview.com/chart/?symbol=NSE:BETA" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+                        View Chart ↗
+                    </a>
+                </div>
+            </div>
+            
+            <div class="stock-card glass rounded-xl p-5 flex flex-col card-hover border-t-4 border-t-red-500" 
+                 data-rsi="63.7" data-adx="29.7" data-price="431.5" data-slope="0.035852207123558355">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="text-xl font-bold text-white tracking-wide">GUFICBIO</h3>
+                        <div class="text-slate-300 font-mono text-lg mt-1">₹431.50</div>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-bold rounded border bg-red-500/20 text-red-400 border-red-500/30">CAUTION / EXIT</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-4 text-sm bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                    <div><span class="text-slate-400 block text-xs uppercase">RSI (14)</span><span class="font-semibold text-white">63.7</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">ADX (14)</span><span class="font-semibold text-white">29.7</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">Stop Loss</span><span class="font-semibold text-orange-400">₹405.99</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">TV Signal</span><span class="font-semibold text-blue-400">UNKNOWN</span></div>
+                </div>
+                
+                <div class="flex-grow">
+                    <p class="text-slate-300 text-sm leading-relaxed border-l-2 border-slate-600 pl-3 italic">
+                        "Technical setup: RSI 63.7, ADX 29.7, Slope 0.036. Stop-loss at Rs 405.99."
+                    </p>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between items-center text-xs text-slate-500 font-mono">
+                    <span>Slope: 0.036</span>
+                    <a href="https://in.tradingview.com/chart/?symbol=NSE:GUFICBIO" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+                        View Chart ↗
+                    </a>
+                </div>
+            </div>
+            
+            <div class="stock-card glass rounded-xl p-5 flex flex-col card-hover border-t-4 border-t-red-500" 
+                 data-rsi="61.3" data-adx="55.1" data-price="1462.0" data-slope="0.03583027981910675">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="text-xl font-bold text-white tracking-wide">ATHERENERG</h3>
+                        <div class="text-slate-300 font-mono text-lg mt-1">₹1,462.00</div>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-bold rounded border bg-red-500/20 text-red-400 border-red-500/30">CAUTION / EXIT</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-4 text-sm bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                    <div><span class="text-slate-400 block text-xs uppercase">RSI (14)</span><span class="font-semibold text-white">61.3</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">ADX (14)</span><span class="font-semibold text-white">55.1</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">Stop Loss</span><span class="font-semibold text-orange-400">₹1,374.78</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">TV Signal</span><span class="font-semibold text-blue-400">UNKNOWN</span></div>
+                </div>
+                
+                <div class="flex-grow">
+                    <p class="text-slate-300 text-sm leading-relaxed border-l-2 border-slate-600 pl-3 italic">
+                        "Technical setup: RSI 61.3, ADX 55.1, Slope 0.036. Stop-loss at Rs 1374.78."
+                    </p>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between items-center text-xs text-slate-500 font-mono">
+                    <span>Slope: 0.036</span>
+                    <a href="https://in.tradingview.com/chart/?symbol=NSE:ATHERENERG" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+                        View Chart ↗
+                    </a>
+                </div>
+            </div>
+            
+            <div class="stock-card glass rounded-xl p-5 flex flex-col card-hover border-t-4 border-t-red-500" 
+                 data-rsi="60.7" data-adx="39.7" data-price="421.3" data-slope="0.035815349554828194">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="text-xl font-bold text-white tracking-wide">SHOPERSTOP</h3>
+                        <div class="text-slate-300 font-mono text-lg mt-1">₹421.30</div>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-bold rounded border bg-red-500/20 text-red-400 border-red-500/30">CAUTION / EXIT</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-4 text-sm bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                    <div><span class="text-slate-400 block text-xs uppercase">RSI (14)</span><span class="font-semibold text-white">60.7</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">ADX (14)</span><span class="font-semibold text-white">39.7</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">Stop Loss</span><span class="font-semibold text-orange-400">₹397.11</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">TV Signal</span><span class="font-semibold text-blue-400">UNKNOWN</span></div>
+                </div>
+                
+                <div class="flex-grow">
+                    <p class="text-slate-300 text-sm leading-relaxed border-l-2 border-slate-600 pl-3 italic">
+                        "Technical setup: RSI 60.7, ADX 39.7, Slope 0.036. Stop-loss at Rs 397.11."
+                    </p>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between items-center text-xs text-slate-500 font-mono">
+                    <span>Slope: 0.036</span>
+                    <a href="https://in.tradingview.com/chart/?symbol=NSE:SHOPERSTOP" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+                        View Chart ↗
+                    </a>
+                </div>
+            </div>
+            
+            <div class="stock-card glass rounded-xl p-5 flex flex-col card-hover border-t-4 border-t-red-500" 
+                 data-rsi="59.3" data-adx="47.6" data-price="240.84" data-slope="0.03581320681870945">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="text-xl font-bold text-white tracking-wide">SREEL</h3>
+                        <div class="text-slate-300 font-mono text-lg mt-1">₹240.84</div>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-bold rounded border bg-red-500/20 text-red-400 border-red-500/30">CAUTION / EXIT</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-4 text-sm bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                    <div><span class="text-slate-400 block text-xs uppercase">RSI (14)</span><span class="font-semibold text-white">59.3</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">ADX (14)</span><span class="font-semibold text-white">47.6</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">Stop Loss</span><span class="font-semibold text-orange-400">₹224.59</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">TV Signal</span><span class="font-semibold text-blue-400">UNKNOWN</span></div>
+                </div>
+                
+                <div class="flex-grow">
+                    <p class="text-slate-300 text-sm leading-relaxed border-l-2 border-slate-600 pl-3 italic">
+                        "Technical setup: RSI 59.3, ADX 47.6, Slope 0.036. Stop-loss at Rs 224.59."
+                    </p>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between items-center text-xs text-slate-500 font-mono">
+                    <span>Slope: 0.036</span>
+                    <a href="https://in.tradingview.com/chart/?symbol=NSE:SREEL" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+                        View Chart ↗
+                    </a>
+                </div>
+            </div>
+            
+            <div class="stock-card glass rounded-xl p-5 flex flex-col card-hover border-t-4 border-t-red-500" 
+                 data-rsi="65.0" data-adx="41.1" data-price="750.0" data-slope="0.03579279674528499">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="text-xl font-bold text-white tracking-wide">AKUMS</h3>
+                        <div class="text-slate-300 font-mono text-lg mt-1">₹750.00</div>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-bold rounded border bg-red-500/20 text-red-400 border-red-500/30">CAUTION / EXIT</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-4 text-sm bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                    <div><span class="text-slate-400 block text-xs uppercase">RSI (14)</span><span class="font-semibold text-white">65.0</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">ADX (14)</span><span class="font-semibold text-white">41.1</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">Stop Loss</span><span class="font-semibold text-orange-400">₹711.31</span></div>
+                    <div><span class="text-slate-400 block text-xs uppercase">TV Signal</span><span class="font-semibold text-blue-400">UNKNOWN</span></div>
+                </div>
+                
+                <div class="flex-grow">
+                    <p class="text-slate-300 text-sm leading-relaxed border-l-2 border-slate-600 pl-3 italic">
+                        "Technical setup: RSI 65.0, ADX 41.1, Slope 0.036. Stop-loss at Rs 711.31."
+                    </p>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between items-center text-xs text-slate-500 font-mono">
+                    <span>Slope: 0.036</span>
+                    <a href="https://in.tradingview.com/chart/?symbol=NSE:AKUMS" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
+                        View Chart ↗
+                    </a>
+                </div>
+            </div>
+            
+        </div>
+        
+    </div>
+
+    <script>
+        function switchTab(tab) {
+            document.getElementById('grid-entries').classList.add('hidden');
+            document.getElementById('grid-exits').classList.add('hidden');
+            
+            document.getElementById('tab-entries').className = "px-6 py-3 font-semibold text-slate-400 border-b-2 border-transparent hover:text-emerald-400 transition-colors";
+            document.getElementById('tab-exits').className = "px-6 py-3 font-semibold text-slate-400 border-b-2 border-transparent hover:text-red-400 transition-colors";
+            
+            document.getElementById('grid-' + tab).classList.remove('hidden');
+            if(tab === 'entries') {
+                document.getElementById('tab-entries').className = "px-6 py-3 font-semibold text-emerald-400 border-b-2 border-emerald-400 transition-colors";
+            } else {
+                document.getElementById('tab-exits').className = "px-6 py-3 font-semibold text-red-400 border-b-2 border-red-400 transition-colors";
+            }
+            sortCards(); // re-sort visible grid
+        }
+
+        function sortCards() {
+            const select = document.getElementById('sortSelect').value;
+            const [key, direction] = select.split('_');
+            
+            ['entries', 'exits'].forEach(tab => {
+                const grid = document.getElementById('grid-' + tab);
+                const cards = Array.from(grid.getElementsByClassName('stock-card'));
+                
+                cards.sort((a, b) => {
+                    let valA = parseFloat(a.getAttribute('data-' + key));
+                    let valB = parseFloat(b.getAttribute('data-' + key));
+                    
+                    if (direction === 'desc') return valB - valA;
+                    return valA - valB;
+                });
+                
+                cards.forEach(card => grid.appendChild(card));
+            });
+        }
+        
+        // Initial sort
+        sortCards();
+    </script>
+</body>
+</html>
