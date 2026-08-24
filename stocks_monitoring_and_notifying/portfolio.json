@@ -12,5 +12,12 @@
         "initial_sl": 2287.714,
         "trailing_sl": 2287.714,
         "highest_price": 2408.12
+    },
+    "DEEDEV": {
+        "entry_price": 650.0,
+        "quantity": 1,
+        "initial_sl": 617.5,
+        "trailing_sl": 617.5,
+        "highest_price": 650.0
     }
 }
