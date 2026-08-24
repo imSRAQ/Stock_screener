@@ -19,5 +19,12 @@
         "initial_sl": 617.5,
         "trailing_sl": 617.5,
         "highest_price": 650.0
+    },
+    "JAYBARMARU": {
+        "entry_price": 163.55,
+        "quantity": 2,
+        "initial_sl": 155.3725,
+        "trailing_sl": 155.3725,
+        "highest_price": 163.55
     }
 }
