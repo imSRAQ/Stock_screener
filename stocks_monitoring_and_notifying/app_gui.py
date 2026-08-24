@@ -174,6 +174,14 @@ class MainWindow(QMainWindow):
         
         self.tabs.currentChanged.connect(self.refresh_watchlist_ui)
 
+        # Status Bar
+        self.status = QStatusBar()
+        self.setStatusBar(self.status)
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setMaximumWidth(300)
+        self.progress_bar.setVisible(False)
+        self.status.addPermanentWidget(self.progress_bar)
+
     def _setup_settings_tab(self):
         settings_tab = QWidget()
         settings_layout = QVBoxLayout(settings_tab)
@@ -231,14 +239,6 @@ class MainWindow(QMainWindow):
             QMessageBox.information(self, "Settings Saved", "Configuration has been saved successfully.\nRestart the app for some changes to take effect.")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to save settings: {str(e)}")
-
-        # Status Bar
-        self.status = QStatusBar()
-        self.setStatusBar(self.status)
-        self.progress_bar = QProgressBar()
-        self.progress_bar.setMaximumWidth(300)
-        self.progress_bar.setVisible(False)
-        self.status.addPermanentWidget(self.progress_bar)
 
     def on_hourly_toggled(self, state):
         self.config.hourly_enabled = (state == Qt.CheckState.Checked.value)
