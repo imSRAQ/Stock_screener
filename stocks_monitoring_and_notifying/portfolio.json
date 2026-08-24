@@ -33,5 +33,12 @@
         "initial_sl": 196.63099999999997,
         "trailing_sl": 196.63099999999997,
         "highest_price": 206.98
+    },
+    "NATIONALUM": {
+        "entry_price": 420.75,
+        "quantity": 24,
+        "initial_sl": 399.7125,
+        "trailing_sl": 399.7125,
+        "highest_price": 420.75
     }
 }
