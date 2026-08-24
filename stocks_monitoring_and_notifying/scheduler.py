@@ -154,6 +154,13 @@ class Scheduler:
             else:
                 final_exits.append(payload)
 
+        # --- NEW DASHBOARD GENERATOR ---
+        from stocks_monitoring_and_notifying.dashboard_generator import DashboardGenerator
+        # In a real run, you want this docs dir at the root of the repo.
+        # Since this script runs inside stocks_monitoring_and_notifying, the repo root is one level up.
+        dashboard_gen = DashboardGenerator(docs_dir="../docs")
+        dashboard_gen.generate(final_entries, final_exits, market_health)
+        
         if is_weekly:
             self.notifier.send_weekly_new_entries(final_entries, market_health)
         else:

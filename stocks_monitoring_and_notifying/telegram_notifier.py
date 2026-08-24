@@ -107,44 +107,27 @@ class TelegramNotifier:
     STOCKS_PER_MSG = 8
 
     def send_scan_results(self, entry_list: List[Dict], exit_list: List[Dict], market_health: Dict):
-        """Formats and sends the full scan results, batched to avoid
-        Telegram's 4096-character message limit."""
+        """Sends a short summary of the scan results with a link to the HTML dashboard."""
         
         header = market_health.get("status_text", "MARKET HEALTH: UNKNOWN")
         
-        if entry_list:
-            # Send stocks in batches
-            for i in range(0, len(entry_list), self.STOCKS_PER_MSG):
-                batch = entry_list[i : i + self.STOCKS_PER_MSG]
-                batch_num = i // self.STOCKS_PER_MSG + 1
-                total_batches = (len(entry_list) + self.STOCKS_PER_MSG - 1) // self.STOCKS_PER_MSG
-                
-                if total_batches == 1:
-                    msg = f"{header}\n\n<b>📈 ENTRY WATCHLIST (Top {len(entry_list)})</b>\n\n"
-                else:
-                    msg = f"{header}\n\n<b>📈 ENTRY WATCHLIST ({batch_num}/{total_batches})</b>\n\n"
-                
-                for item in batch:
-                    msg += self._format_stock_entry(item["data"], item["sentiment"], item["ai"])
-                self.send_message(msg)
-            
-        if exit_list:
-            for i in range(0, len(exit_list), self.STOCKS_PER_MSG):
-                batch = exit_list[i : i + self.STOCKS_PER_MSG]
-                batch_num = i // self.STOCKS_PER_MSG + 1
-                total_batches = (len(exit_list) + self.STOCKS_PER_MSG - 1) // self.STOCKS_PER_MSG
-                
-                if total_batches == 1:
-                    msg = f"{header}\n\n<b>📉 EXIT/CAUTION WATCHLIST</b>\n\n"
-                else:
-                    msg = f"{header}\n\n<b>📉 EXIT/CAUTION ({batch_num}/{total_batches})</b>\n\n"
-                
-                for item in batch:
-                    msg += self._format_stock_entry(item["data"], item["sentiment"], item["ai"])
-                self.send_message(msg)
-            
         if not entry_list and not exit_list:
             self.send_message(f"{header}\n\nScan complete. No actionable signals found.")
+            return
+
+        msg = f"🚨 <b>NSE Scan Complete!</b>\n\n"
+        msg += f"{header}\n\n"
+        msg += f"🟢 {len(entry_list)} Entry Candidates\n"
+        msg += f"🔴 {len(exit_list)} Caution / Exits\n\n"
+        
+        # We can hardcode the repo URL since it's hosted via GitHub Pages for the user.
+        # Format is typically: https://<username>.github.io/<repo>/
+        # Alternatively we can grab it from config, but for simplicity:
+        dashboard_url = "https://imSRAQ.github.io/Stock_screener/"
+        
+        msg += f"👉 <b>View Full AI Dashboard:</b>\n{dashboard_url}"
+        
+        self.send_message(msg)
 
     def send_trailing_stop_alerts(self, alerts: List[Dict]):
         """Sends alerts for hit or updated trailing stops."""
