@@ -154,11 +154,17 @@ class Scheduler:
             else:
                 final_exits.append(payload)
 
-        # --- NEW DASHBOARD GENERATOR ---
+        # --- NEW DASHBOARD & HISTORY GENERATOR ---
+        from history_manager import HistoryManager
         from dashboard_generator import DashboardGenerator
+        
+        history_mgr = HistoryManager()
+        history_mgr.record_entries(final_entries)
+        analytics = history_mgr.calculate_analytics()
+        
         # Since docs is now inside stocks_monitoring_and_notifying, we point to "docs"
         dashboard_gen = DashboardGenerator(docs_dir="docs")
-        dashboard_gen.generate(final_entries, final_exits, market_health)
+        dashboard_gen.generate(final_entries, final_exits, market_health, analytics, self.portfolio.get_portfolio())
         
         if is_weekly:
             self.notifier.send_weekly_new_entries(final_entries, market_health)
