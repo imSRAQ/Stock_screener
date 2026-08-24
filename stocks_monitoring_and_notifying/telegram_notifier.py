@@ -123,7 +123,7 @@ class TelegramNotifier:
         # We can hardcode the repo URL since it's hosted via GitHub Pages for the user.
         # Format is typically: https://<username>.github.io/<repo>/
         # Alternatively we can grab it from config, but for simplicity:
-        dashboard_url = "https://imSRAQ.github.io/Stock_screener/"
+        dashboard_url = "https://imSRAQ.github.io/Stock_screener/stocks_monitoring_and_notifying/docs/"
         
         msg += f"👉 <b>View Full AI Dashboard:</b>\n{dashboard_url}"
         
