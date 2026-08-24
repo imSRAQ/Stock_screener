@@ -45,7 +45,7 @@ class PortfolioManager:
         """Attempts to commit and push changes to git."""
         try:
             repo_dir = os.path.dirname(os.path.dirname(self.filepath))
-            subprocess.run(["git", "add", self.filepath], cwd=repo_dir, check=True, capture_output=True)
+            subprocess.run(["git", "add", "-f", self.filepath], cwd=repo_dir, check=True, capture_output=True)
             commit_res = subprocess.run(["git", "commit", "-m", "Auto-sync portfolio.json"], cwd=repo_dir, capture_output=True)
             if commit_res.returncode == 0:
                 subprocess.run(["git", "push"], cwd=repo_dir, check=True, capture_output=True)
