@@ -40,5 +40,12 @@
         "initial_sl": 399.7125,
         "trailing_sl": 399.7125,
         "highest_price": 420.75
+    },
+    "WELCORP": {
+        "entry_price": 1629.88,
+        "quantity": 5,
+        "initial_sl": 1548.386,
+        "trailing_sl": 1548.386,
+        "highest_price": 1629.88
     }
 }
