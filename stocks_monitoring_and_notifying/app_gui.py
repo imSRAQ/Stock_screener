@@ -7,7 +7,7 @@ from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QGroupBox, QLabel, QSpinBox, QPushButton, QTableWidget, QTableWidgetItem,
     QHeaderView, QSplitter, QStatusBar, QProgressBar, QMessageBox, QTabWidget,
-    QLineEdit, QCheckBox
+    QLineEdit, QCheckBox, QFormLayout
 )
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
 
@@ -170,7 +170,67 @@ class MainWindow(QMainWindow):
         
         self.tabs.addTab(watchlist_tab, "Special Watchlist")
         
+        self._setup_settings_tab()
+        
         self.tabs.currentChanged.connect(self.refresh_watchlist_ui)
+
+    def _setup_settings_tab(self):
+        settings_tab = QWidget()
+        settings_layout = QVBoxLayout(settings_tab)
+        
+        form_layout = QFormLayout()
+        
+        # API Keys
+        self.inp_tg_token = QLineEdit(self.config.telegram_bot_token)
+        self.inp_tg_chat = QLineEdit(self.config.telegram_chat_id)
+        self.inp_gemini = QLineEdit(self.config.config_data.get("gemini_api_key", ""))
+        self.inp_groq = QLineEdit(self.config.config_data.get("groq_api_key", ""))
+        
+        form_layout.addRow(QLabel("<b>API Keys</b>"))
+        form_layout.addRow("Telegram Bot Token:", self.inp_tg_token)
+        form_layout.addRow("Telegram Chat ID:", self.inp_tg_chat)
+        form_layout.addRow("Gemini API Key:", self.inp_gemini)
+        form_layout.addRow("Groq API Key:", self.inp_groq)
+        
+        # Filters
+        filters = self.config.filters
+        self.inp_rsi_min = QLineEdit(str(filters.get("rsi_min", 40.0)))
+        self.inp_adx_min = QLineEdit(str(filters.get("adx_min", 25.0)))
+        self.inp_sl_mult = QLineEdit(str(filters.get("atr_stop_loss_multiplier", 1.5)))
+        
+        form_layout.addRow(QLabel("<b>AI Technical Filters</b>"))
+        form_layout.addRow("RSI Minimum:", self.inp_rsi_min)
+        form_layout.addRow("ADX Minimum:", self.inp_adx_min)
+        form_layout.addRow("ATR Stop Loss Multiplier:", self.inp_sl_mult)
+        
+        settings_layout.addLayout(form_layout)
+        
+        btn_save = QPushButton("Save Settings")
+        btn_save.clicked.connect(self.save_settings)
+        btn_save.setMinimumHeight(40)
+        btn_save.setStyleSheet("background-color: #059669; color: white; font-weight: bold; font-size: 14px; border-radius: 5px;")
+        settings_layout.addWidget(btn_save)
+        settings_layout.addStretch()
+        
+        self.tabs.addTab(settings_tab, "Settings")
+        
+    def save_settings(self):
+        try:
+            # Update config object
+            self.config.config_data["telegram_bot_token"] = self.inp_tg_token.text().strip()
+            self.config.config_data["telegram_chat_id"] = self.inp_tg_chat.text().strip()
+            self.config.config_data["gemini_api_key"] = self.inp_gemini.text().strip()
+            self.config.config_data["groq_api_key"] = self.inp_groq.text().strip()
+            
+            self.config.filters["rsi_min"] = float(self.inp_rsi_min.text().strip())
+            self.config.filters["adx_min"] = float(self.inp_adx_min.text().strip())
+            self.config.filters["atr_stop_loss_multiplier"] = float(self.inp_sl_mult.text().strip())
+            
+            # Save to file
+            self.config.save()
+            QMessageBox.information(self, "Settings Saved", "Configuration has been saved successfully.\nRestart the app for some changes to take effect.")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to save settings: {str(e)}")
 
         # Status Bar
         self.status = QStatusBar()

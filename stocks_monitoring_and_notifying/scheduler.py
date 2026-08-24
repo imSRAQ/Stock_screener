@@ -219,6 +219,7 @@ class Scheduler:
         # Apply 1.2x slope boost to stocks in top sectors
         for r in results:
             sec = self.sector_analyzer.get_sector(r["symbol"])
+            r["sector"] = sec
             if sec in top_sectors:
                 r["slope"] *= 1.2
                 r["sector_boost"] = True

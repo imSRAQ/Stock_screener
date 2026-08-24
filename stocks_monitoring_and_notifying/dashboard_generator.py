@@ -211,13 +211,17 @@ class DashboardGenerator:
             
             ai_text = item.get('ai', {}).get('ai_summary', 'No summary available.')
             tv_rec = item.get('sentiment', {}).get('technical', {}).get('recommendation', 'UNKNOWN')
+            
+            sector = d.get('sector', 'Unknown')
+            sector_boost = d.get('sector_boost', False)
+            sector_badge = f'<span class="px-2 py-1 text-xs font-bold rounded border bg-orange-500/20 text-orange-400 border-orange-500/30 shadow-[0_0_10px_rgba(249,115,22,0.3)] ml-2" title="{sector}">🔥 HOT SECTOR</span>' if sector_boost else ''
 
             html += f"""
             <div class="stock-card glass rounded-xl p-5 flex flex-col card-hover border-t-4 {'border-t-emerald-500' if is_entry else 'border-t-red-500'}" 
                  data-rsi="{rsi}" data-adx="{adx}" data-price="{price}" data-slope="{slope}" data-pnl="0" data-date="0">
                 <div class="flex justify-between items-start mb-3">
                     <div>
-                        <h3 class="text-xl font-bold text-white tracking-wide">{sym}</h3>
+                        <h3 class="text-xl font-bold text-white tracking-wide">{sym}{sector_badge}</h3>
                         <div class="text-slate-300 font-mono text-lg mt-1">₹{price:,.2f}</div>
                     </div>
                     <span class="px-2 py-1 text-xs font-bold rounded border {badge_color}">{status_text}</span>
