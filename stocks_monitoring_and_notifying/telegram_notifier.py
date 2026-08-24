@@ -8,9 +8,13 @@ to manage the system remotely.
 
 import threading
 import asyncio
+import io
 from typing import List, Dict, Optional
-from telegram import Update
+from telegram import Update, InputFile
 from telegram.ext import Application, CommandHandler, ContextTypes
+
+import yfinance as yf
+import matplotlib.pyplot as plt
 
 from watchlist_manager import WatchlistManager
 from config_manager import ConfigManager
@@ -175,9 +179,15 @@ class TelegramNotifier:
             "/unwatch SYMBOL — Remove a stock\n"
             "/watchlist — View your watchlist\n\n"
             "<b>Portfolio Management:</b>\n"
-            "/entry SYMBOL PRICE QTY [STOP_LOSS] — Log a trade\n"
-            "/exit SYMBOL — Close a position\n"
+            "/entry [SYMBOL] [PRICE] [QTY] [SL] — Add to portfolio\n"
+            "/exit [SYMBOL] — Remove from portfolio\n"
             "/portfolio — View current holdings & P&L\n\n"
+            "<b>Interactive Analysis:</b>\n"
+            "/chart [SYMBOL] — Get a technical chart with MAs\n\n"
+            "<b>Examples:</b>\n"
+            "/watch RELIANCE\n"
+            "/entry RELIANCE 2500 10 2400\n"
+            "/chart INFY\n\n"
             "<b>System Controls:</b>\n"
             "/status — View market health & config\n"
             "/hourly on|off — Toggle hourly scans\n"
@@ -287,6 +297,69 @@ class TelegramNotifier:
             
         await update.message.reply_text(msg, parse_mode='HTML')
 
+    async def _cmd_chart(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Generates a technical chart for a given symbol."""
+        if not context.args:
+            await update.message.reply_text("Please provide a symbol. Example: /chart RELIANCE")
+            return
+            
+        raw_symbol = context.args[0].upper()
+        # Assume NSE for Indian stocks
+        symbol = raw_symbol + ".NS" if not raw_symbol.endswith(".NS") else raw_symbol
+        
+        loading_msg = await update.message.reply_text(f"📊 Fetching data and generating chart for {raw_symbol}...")
+        
+        try:
+            # Run in executor to not block async loop
+            def generate_chart():
+                data = yf.download(symbol, period="6mo", progress=False)
+                if data.empty:
+                    return None
+                    
+                # Setup dark theme
+                plt.style.use('dark_background')
+                fig, ax = plt.subplots(figsize=(10, 6))
+                
+                # Plot price
+                if isinstance(data.columns, pd.MultiIndex):
+                    close = data['Close'][symbol]
+                else:
+                    close = data['Close']
+                    
+                ax.plot(close.index, close, label='Close', color='#3b82f6', linewidth=1.5)
+                
+                # Calculate and plot SMAs
+                sma50 = close.rolling(window=50).mean()
+                sma200 = close.rolling(window=200).mean()
+                ax.plot(sma50.index, sma50, label='50 SMA', color='#10b981', linewidth=1.2, linestyle='--')
+                ax.plot(sma200.index, sma200, label='200 SMA', color='#ef4444', linewidth=1.2, linestyle='--')
+                
+                # Formatting
+                ax.set_title(f"{raw_symbol} - 6 Month Technical Chart", color='white', pad=15)
+                ax.grid(True, color='#334155', linestyle='-', alpha=0.5)
+                ax.legend(facecolor='#1e293b', edgecolor='#334155')
+                
+                # Save to buffer
+                buf = io.BytesIO()
+                fig.savefig(buf, format='png', bbox_inches='tight', dpi=150, facecolor='#0f172a')
+                buf.seek(0)
+                plt.close(fig)
+                return buf
+                
+            import pandas as pd
+            loop = asyncio.get_event_loop()
+            buf = await loop.run_in_executor(None, generate_chart)
+            
+            if not buf:
+                await loading_msg.edit_text(f"❌ Could not fetch data for {raw_symbol}. Check symbol.")
+                return
+                
+            await update.message.reply_photo(photo=InputFile(buf, filename=f"{raw_symbol}_chart.png"))
+            await loading_msg.delete()
+            
+        except Exception as e:
+            await loading_msg.edit_text(f"❌ Error generating chart: {str(e)}")
+
     def _run_bot_loop(self):
         """Runs the bot polling in a separate thread."""
         try:
@@ -306,6 +379,7 @@ class TelegramNotifier:
             self._bot_app.add_handler(CommandHandler("entry", self._cmd_entry))
             self._bot_app.add_handler(CommandHandler("exit", self._cmd_exit))
             self._bot_app.add_handler(CommandHandler("portfolio", self._cmd_portfolio))
+            self._bot_app.add_handler(CommandHandler("chart", self._cmd_chart))
             
             self._bot_app.run_polling(drop_pending_updates=True)
         except Exception as e:
