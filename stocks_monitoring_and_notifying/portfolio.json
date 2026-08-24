@@ -26,5 +26,12 @@
         "initial_sl": 155.3725,
         "trailing_sl": 155.3725,
         "highest_price": 163.55
+    },
+    "KNACK": {
+        "entry_price": 206.98,
+        "quantity": 25,
+        "initial_sl": 196.63099999999997,
+        "trailing_sl": 196.63099999999997,
+        "highest_price": 206.98
     }
 }
