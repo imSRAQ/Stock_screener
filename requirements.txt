@@ -7,3 +7,5 @@ matplotlib
 google-generativeai
 openai
 anthropic
+python-telegram-bot
+tradingview-ta
