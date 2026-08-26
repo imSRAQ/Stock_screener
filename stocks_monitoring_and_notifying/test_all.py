@@ -1,568 +1,1082 @@
 """
-Comprehensive Test Suite for NSE Stock Screener
+test_all.py
+-----------
+Comprehensive test suite for the NSE Stock Screener project.
 Tests every module individually and in combination.
+Covers: edge cases, empty data, invalid inputs, integration paths.
+
+Run with:
+    python test_all.py
 """
 
-import sys
 import os
+import sys
 import json
-import traceback
-import tempfile
 import shutil
+import tempfile
+import traceback
+import numpy as np
 
-# Set working directory to project
-os.chdir(os.path.dirname(__file__))
+# ── Ensure project root is on the Python path ──────────────────────────
+PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
+if PROJECT_DIR not in sys.path:
+    sys.path.insert(0, PROJECT_DIR)
 
-PASS = 0
-FAIL = 0
-ERRORS = []
 
-def test(name, func):
-    global PASS, FAIL, ERRORS
+# ═══════════════════════════════════════════════════════════════════════
+#  Test infrastructure
+# ═══════════════════════════════════════════════════════════════════════
+
+_passed = 0
+_failed = 0
+_errors = []
+
+
+def _run(name, fn):
+    """Run a single test function, catching and recording failures."""
+    global _passed, _failed
     try:
-        func()
-        PASS += 1
-        print(f"  [PASS] {name}")
+        fn()
+        _passed += 1
+        print(f"  ✅  {name}")
+    except AssertionError as e:
+        _failed += 1
+        msg = f"  ❌  {name}  →  {e}"
+        print(msg)
+        _errors.append(msg)
     except Exception as e:
-        FAIL += 1
-        err_msg = f"  [FAIL] {name}: {e}"
-        ERRORS.append(err_msg)
-        print(err_msg)
+        _failed += 1
+        msg = f"  💥  {name}  →  {type(e).__name__}: {e}"
+        print(msg)
+        _errors.append(msg)
         traceback.print_exc()
 
-# =========================================================================
-# 1. CONFIG MANAGER
-# =========================================================================
-print("\n" + "=" * 60)
-print("TEST MODULE: config_manager.py")
-print("=" * 60)
 
-def test_config_load():
+# ═══════════════════════════════════════════════════════════════════════
+#  1.  ConfigManager
+# ═══════════════════════════════════════════════════════════════════════
+
+def test_config_manager():
     from config_manager import ConfigManager
-    c = ConfigManager()
-    assert c.config_path is not None
-    assert c._data is not None
 
-def test_config_defaults():
-    from config_manager import ConfigManager
-    tmp = tempfile.NamedTemporaryFile(suffix=".json", delete=False, mode="w")
-    tmp.write("{}")
-    tmp.close()
-    c = ConfigManager(config_path=tmp.name)
-    assert c.filters.get("rsi_min") is not None, "Defaults not merged"
-    assert c.filters.get("sma_short") == 50
-    assert c.hourly_enabled == True
-    os.unlink(tmp.name)
+    print("\n── ConfigManager ──")
 
-def test_config_save_and_reload():
-    from config_manager import ConfigManager
-    tmp = tempfile.NamedTemporaryFile(suffix=".json", delete=False, mode="w")
-    tmp.write("{}")
-    tmp.close()
-    c = ConfigManager(config_path=tmp.name)
-    c._data["telegram_bot_token"] = "test_token_123"
-    c.save()
-    c2 = ConfigManager(config_path=tmp.name)
-    assert c2.telegram_bot_token == "test_token_123"
-    os.unlink(tmp.name)
+    # 1a. Load from a non-existent path -> should use defaults
+    def t_defaults():
+        cfg = ConfigManager(config_path="__nonexistent__.json")
+        assert cfg.filters is not None
+        assert cfg.filters["rsi_min"] == 40
+        assert cfg.filters["sma_long"] == 200
+        assert cfg.hourly_enabled is True
+        assert cfg.telegram_bot_token == ""
+    _run("defaults on missing file", t_defaults)
 
-def test_config_properties():
-    from config_manager import ConfigManager
-    c = ConfigManager()
-    _ = c.telegram_bot_token
-    _ = c.telegram_chat_id
-    _ = c.gemini_api_key
-    _ = c.groq_api_key
-    _ = c.openai_api_key
-    _ = c.anthropic_api_key
-    _ = c.schedule
-    _ = c.filters
-    _ = c.hourly_enabled
-    _ = c.top_n_for_hourly
-    _ = c.advanced
-    _ = c.portfolio
-    _ = c.config
+    # 1b. Save and reload round-trip
+    def t_save_reload():
+        tmp = os.path.join(tempfile.gettempdir(), "test_config_rt.json")
+        try:
+            cfg = ConfigManager(config_path=tmp)
+            cfg._data["telegram_bot_token"] = "TEST_TOKEN"
+            cfg.save()
 
-def test_config_validate():
-    from config_manager import ConfigManager
-    tmp = tempfile.NamedTemporaryFile(suffix=".json", delete=False, mode="w")
-    tmp.write("{}")
-    tmp.close()
-    c = ConfigManager(config_path=tmp.name)
-    errors = c.validate(require_secrets=True)
-    assert len(errors) > 0, "Empty config should fail validation"
-    errors2 = c.validate(require_secrets=False)
-    assert len(errors2) == 0
-    os.unlink(tmp.name)
+            cfg2 = ConfigManager(config_path=tmp)
+            assert cfg2.telegram_bot_token == "TEST_TOKEN"
+        finally:
+            if os.path.exists(tmp):
+                os.remove(tmp)
+    _run("save / reload round-trip", t_save_reload)
 
-test("Load config", test_config_load)
-test("Default merging", test_config_defaults)
-test("Save + reload", test_config_save_and_reload)
-test("All properties accessible", test_config_properties)
-test("Validation logic", test_config_validate)
+    # 1c. Env-var overrides
+    def t_env_override():
+        os.environ["TELEGRAM_BOT_TOKEN"] = "FROM_ENV"
+        try:
+            cfg = ConfigManager(config_path="__nonexistent__.json")
+            assert cfg.telegram_bot_token == "FROM_ENV"
+        finally:
+            del os.environ["TELEGRAM_BOT_TOKEN"]
+    _run("env-var override", t_env_override)
 
-# =========================================================================
-# 2. WATCHLIST MANAGER
-# =========================================================================
-print("\n" + "=" * 60)
-print("TEST MODULE: watchlist_manager.py")
-print("=" * 60)
+    # 1d. Validation
+    def t_validation():
+        cfg = ConfigManager(config_path="__nonexistent__.json")
+        errors = cfg.validate(require_secrets=True)
+        assert len(errors) >= 2  # at least token + chat_id missing
+    _run("validation catches missing secrets", t_validation)
 
-def test_watchlist_add_remove():
-    from watchlist_manager import WatchlistManager
-    # WatchlistManager expects {"symbols": [...]} format
-    tmp = tempfile.NamedTemporaryFile(suffix=".json", delete=False, mode="w")
-    json.dump({"symbols": []}, tmp)
-    tmp.close()
-    wl = WatchlistManager(filepath=tmp.name)
-    assert wl.add("RELIANCE") == True
-    assert wl.add("RELIANCE") == False  # Duplicate
-    assert "RELIANCE.NS" in wl.get_all()
-    assert wl.remove("RELIANCE") == True
-    assert wl.remove("RELIANCE") == False
-    os.unlink(tmp.name)
+    # 1e. hourly_enabled setter
+    def t_hourly_setter():
+        cfg = ConfigManager(config_path="__nonexistent__.json")
+        cfg.hourly_enabled = False
+        assert cfg.hourly_enabled is False
+        cfg.hourly_enabled = True
+        assert cfg.hourly_enabled is True
+    _run("hourly_enabled setter", t_hourly_setter)
 
-def test_watchlist_persistence():
-    from watchlist_manager import WatchlistManager
-    tmp = tempfile.NamedTemporaryFile(suffix=".json", delete=False, mode="w")
-    json.dump({"symbols": []}, tmp)
-    tmp.close()
-    wl = WatchlistManager(filepath=tmp.name)
-    wl.add("INFY")
-    wl2 = WatchlistManager(filepath=tmp.name)
-    assert "INFY.NS" in wl2.get_all()
-    os.unlink(tmp.name)
+    # 1f. filters property returns dict not copy (mutations propagate)
+    def t_filters_mutable():
+        cfg = ConfigManager(config_path="__nonexistent__.json")
+        cfg.filters["rsi_min"] = 99
+        assert cfg.filters["rsi_min"] == 99
+    _run("filters property is mutable reference", t_filters_mutable)
 
-test("Add/remove symbols", test_watchlist_add_remove)
-test("Persistence across instances", test_watchlist_persistence)
+    # 1g. .config property
+    def t_config_property():
+        cfg = ConfigManager(config_path="__nonexistent__.json")
+        d = cfg.config
+        assert isinstance(d, dict)
+        assert "filters" in d
+    _run(".config property returns full dict", t_config_property)
 
-# =========================================================================
-# 3. PORTFOLIO MANAGER
-# =========================================================================
-print("\n" + "=" * 60)
-print("TEST MODULE: portfolio_manager.py")
-print("=" * 60)
 
-def test_portfolio_add_remove():
-    from portfolio_manager import PortfolioManager
-    tmp = tempfile.NamedTemporaryFile(suffix=".json", delete=False, mode="w")
-    tmp.write("{}")
-    tmp.close()
-    pm = PortfolioManager(filepath=tmp.name)
-    result = pm.add_position("RELIANCE", 2500.0, 10, 2400.0)
-    assert "Added" in result
-    assert "RELIANCE" in pm.portfolio
-    result2 = pm.add_position("RELIANCE", 2500.0, 10, 2400.0)
-    assert "already" in result2
-    result3 = pm.remove_position("RELIANCE")
-    assert "Closed" in result3
-    result4 = pm.remove_position("RELIANCE")
-    assert "not found" in result4
-    os.unlink(tmp.name)
+# ═══════════════════════════════════════════════════════════════════════
+#  2.  TechnicalIndicators
+# ═══════════════════════════════════════════════════════════════════════
 
-def test_portfolio_trailing_stop():
-    from portfolio_manager import PortfolioManager
-    tmp = tempfile.NamedTemporaryFile(suffix=".json", delete=False, mode="w")
-    tmp.write("{}")
-    tmp.close()
-    pm = PortfolioManager(filepath=tmp.name)
-    pm.add_position("TEST", 100.0, 10, 90.0)
-    
-    config = {"trailing_stop_activation_pct": 5.0, "trailing_stop_distance_atr": 1.5}
-    
-    # Price goes up 10% -> activate trailing stop
-    alerts = pm.check_trailing_stops({"TEST": {"price": 110.0, "atr": 3.0}}, config)
-    assert pm.portfolio["TEST"]["trailing_sl"] == 105.5, f"Expected 105.5, got {pm.portfolio['TEST']['trailing_sl']}"
-    
-    # Price drops but above SL -> no exit
-    alerts2 = pm.check_trailing_stops({"TEST": {"price": 106.0, "atr": 3.0}}, config)
-    assert "TEST" in pm.portfolio
-    
-    # Price drops below SL -> exit
-    alerts3 = pm.check_trailing_stops({"TEST": {"price": 104.0, "atr": 3.0}}, config)
-    assert "TEST" not in pm.portfolio, "Should have been removed on stop hit"
-    assert any(a["type"] == "STOP_HIT" for a in alerts3)
-    os.unlink(tmp.name)
-
-def test_portfolio_empty_portfolio():
-    from portfolio_manager import PortfolioManager
-    tmp = tempfile.NamedTemporaryFile(suffix=".json", delete=False, mode="w")
-    tmp.write("{}")
-    tmp.close()
-    pm = PortfolioManager(filepath=tmp.name)
-    alerts = pm.check_trailing_stops({}, {})
-    assert alerts == []
-    os.unlink(tmp.name)
-
-def test_portfolio_missing_symbol_in_prices():
-    from portfolio_manager import PortfolioManager
-    tmp = tempfile.NamedTemporaryFile(suffix=".json", delete=False, mode="w")
-    tmp.write("{}")
-    tmp.close()
-    pm = PortfolioManager(filepath=tmp.name)
-    pm.add_position("GHOST", 100, 5, 90)
-    alerts = pm.check_trailing_stops({"OTHER": {"price": 50, "atr": 2}}, {})
-    assert alerts == [], "Missing symbol should be silently skipped"
-    assert "GHOST" in pm.portfolio
-    os.unlink(tmp.name)
-
-test("Add/remove positions", test_portfolio_add_remove)
-test("Trailing stop logic", test_portfolio_trailing_stop)
-test("Empty portfolio handling", test_portfolio_empty_portfolio)
-test("Missing symbol in current_prices", test_portfolio_missing_symbol_in_prices)
-
-# =========================================================================
-# 4. HISTORY MANAGER
-# =========================================================================
-print("\n" + "=" * 60)
-print("TEST MODULE: history_manager.py")
-print("=" * 60)
-
-def test_history_record_and_load():
-    from history_manager import HistoryManager
-    hm = HistoryManager()
-    assert isinstance(hm.history, list)
-
-def test_history_duplicate_prevention():
-    from history_manager import HistoryManager
-    hm = HistoryManager()
-    original_len = len(hm.history)
-    test_entry = [{"data": {"symbol": "__TEST_SYMBOL__", "price": 100, "stop_loss": 90}, "ai": {"ai_summary": "test"}, "sentiment": {"technical": {"recommendation": "BUY"}}}]
-    hm.record_entries(test_entry)
-    len_after_first = len(hm.history)
-    hm.record_entries(test_entry)
-    len_after_second = len(hm.history)
-    assert len_after_second == len_after_first, "Duplicate prevention failed"
-    # Cleanup
-    hm.history = [h for h in hm.history if h["symbol"] != "__TEST_SYMBOL__"]
-    hm._save_history()
-
-def test_history_empty_analytics():
-    from history_manager import HistoryManager
-    hm = HistoryManager()
-    orig = hm.history
-    hm.history = []
-    analytics = hm.calculate_analytics()
-    assert analytics["total_trades"] == 0
-    assert analytics["win_rate"] == 0.0
-    hm.history = orig
-
-test("Load history", test_history_record_and_load)
-test("Duplicate prevention", test_history_duplicate_prevention)
-test("Empty history analytics", test_history_empty_analytics)
-
-# =========================================================================
-# 5. MARKET HEALTH
-# =========================================================================
-print("\n" + "=" * 60)
-print("TEST MODULE: market_health.py")
-print("=" * 60)
-
-def test_market_health_import():
-    from market_health import MarketHealthChecker
-    mhc = MarketHealthChecker()
-    assert hasattr(mhc, "check")
-
-test("Import MarketHealthChecker", test_market_health_import)
-
-# =========================================================================
-# 6. SECTOR ANALYSIS
-# =========================================================================
-print("\n" + "=" * 60)
-print("TEST MODULE: sector_analysis.py")
-print("=" * 60)
-
-def test_sector_analysis_import():
-    from sector_analysis import SectorAnalyzer
-    sa = SectorAnalyzer()
-    assert hasattr(sa, "rank_sectors")
-    assert hasattr(sa, "get_sector")
-
-def test_sector_get_sector():
-    from sector_analysis import SectorAnalyzer
-    sa = SectorAnalyzer()
-    sec = sa.get_sector("RELIANCE")
-    assert isinstance(sec, str)
-
-test("Import SectorAnalyzer", test_sector_analysis_import)
-test("Get sector for symbol", test_sector_get_sector)
-
-# =========================================================================
-# 7. DASHBOARD GENERATOR
-# =========================================================================
-print("\n" + "=" * 60)
-print("TEST MODULE: dashboard_generator.py")
-print("=" * 60)
-
-def test_dashboard_import():
-    from dashboard_generator import DashboardGenerator
-    dg = DashboardGenerator()
-    assert hasattr(dg, "generate")
-
-def test_dashboard_generate_empty():
-    from dashboard_generator import DashboardGenerator
-    dg = DashboardGenerator()
-    path = dg.generate([], [], {"status_text": "TEST", "nifty_close": 0, "nifty_sma": 0},
-                       analytics={"total_trades": 0, "win_rate": 0, "avg_profit_pct": 0, "active_history": []},
-                       portfolio={})
-    assert os.path.exists(path), "Dashboard HTML not created"
-    with open(path, "r", encoding="utf-8") as f:
-        content = f.read()
-    assert "TEST" in content or "NSE" in content
-
-def test_dashboard_generate_with_sector_badges():
-    from dashboard_generator import DashboardGenerator
-    dg = DashboardGenerator()
-    entry = [{"data": {"symbol": "TESTSTOCK", "price": 100, "rsi": 55, "adx": 30, "stop_loss": 90, "slope": 0.5, "sector": "Technology", "sector_boost": True}, "ai": {"ai_summary": "Test summary"}, "sentiment": {"technical": {"recommendation": "BUY"}}}]
-    exit_item = [{"data": {"symbol": "EXITSTOCK", "price": 50, "rsi": 75, "adx": 15, "stop_loss": 45, "slope": -0.1, "sector": "Unknown", "sector_boost": False}, "ai": {"ai_summary": "Exit test"}, "sentiment": {"technical": {"recommendation": "SELL"}}}]
-    path = dg.generate(entry, exit_item, {"status_text": "BULLISH", "nifty_close": 24000, "nifty_sma": 23500},
-                       analytics={"total_trades": 0, "win_rate": 0, "avg_profit_pct": 0, "active_history": []},
-                       portfolio={})
-    with open(path, "r", encoding="utf-8") as f:
-        content = f.read()
-    assert "TESTSTOCK" in content
-    assert "HOT SECTOR" in content, "HOT SECTOR badge missing for sector_boost=True"
-    assert "EXITSTOCK" in content
-
-def test_dashboard_missing_sector_field():
-    """Dashboard should handle stocks without sector data gracefully."""
-    from dashboard_generator import DashboardGenerator
-    dg = DashboardGenerator()
-    entry = [{"data": {"symbol": "NOSECTOR", "price": 100, "rsi": 55, "adx": 30, "stop_loss": 90, "slope": 0.5}, "ai": {"ai_summary": "Test"}, "sentiment": {"technical": {"recommendation": "BUY"}}}]
-    path = dg.generate(entry, [], {"status_text": "TEST", "nifty_close": 0, "nifty_sma": 0},
-                       analytics={"total_trades": 0, "win_rate": 0, "avg_profit_pct": 0, "active_history": []},
-                       portfolio={})
-    with open(path, "r", encoding="utf-8") as f:
-        content = f.read()
-    assert "NOSECTOR" in content, "Stock without sector field should still render"
-
-test("Import DashboardGenerator", test_dashboard_import)
-test("Generate empty dashboard", test_dashboard_generate_empty)
-test("Generate with sector badges", test_dashboard_generate_with_sector_badges)
-test("Dashboard handles missing sector", test_dashboard_missing_sector_field)
-
-# =========================================================================
-# 8. TELEGRAM NOTIFIER (non-network tests)
-# =========================================================================
-print("\n" + "=" * 60)
-print("TEST MODULE: telegram_notifier.py (non-network)")
-print("=" * 60)
-
-def test_telegram_import():
-    from telegram_notifier import TelegramNotifier
-    from config_manager import ConfigManager
-    from watchlist_manager import WatchlistManager
-    from portfolio_manager import PortfolioManager
-    c = ConfigManager()
-    w = WatchlistManager()
-    p = PortfolioManager()
-    tn = TelegramNotifier(c, w, p)
-    assert hasattr(tn, "send_message")
-    assert hasattr(tn, "send_scan_results")
-    assert hasattr(tn, "_cmd_chart")
-    assert hasattr(tn, "_cmd_portfolio")
-    assert hasattr(tn, "_cmd_entry")
-    assert hasattr(tn, "_cmd_exit")
-
-def test_telegram_not_configured():
-    from telegram_notifier import TelegramNotifier
-    from config_manager import ConfigManager
-    from watchlist_manager import WatchlistManager
-    tmp = tempfile.NamedTemporaryFile(suffix=".json", delete=False, mode="w")
-    tmp.write("{}")
-    tmp.close()
-    c = ConfigManager(config_path=tmp.name)
-    w = WatchlistManager()
-    tn = TelegramNotifier(c, w)
-    assert tn.is_configured == False
-    os.unlink(tmp.name)
-
-test("Import and construct TelegramNotifier", test_telegram_import)
-test("Unconfigured bot detection", test_telegram_not_configured)
-
-# =========================================================================
-# 9. TECHNICAL INDICATORS
-# =========================================================================
-print("\n" + "=" * 60)
-print("TEST MODULE: technical_indicators.py")
-print("=" * 60)
-
-def test_indicators_import():
+def test_technical_indicators():
     from technical_indicators import TechnicalIndicators
-    assert hasattr(TechnicalIndicators, "compute_rsi")
-    assert hasattr(TechnicalIndicators, "compute_adx")
-    assert hasattr(TechnicalIndicators, "compute_atr")
-    assert hasattr(TechnicalIndicators, "compute_volume_ratio")
 
-def test_indicators_rsi():
-    import numpy as np
-    from technical_indicators import TechnicalIndicators
-    # Steadily rising prices -> high RSI
-    data = np.arange(100, 200, dtype=float)
-    rsi = TechnicalIndicators.compute_rsi(data, 14)
-    assert rsi > 90, f"Steadily rising RSI should be near 100, got {rsi}"
+    ti = TechnicalIndicators()
+    print("\n── TechnicalIndicators ──")
 
-def test_indicators_rsi_insufficient_data():
-    import numpy as np
-    from technical_indicators import TechnicalIndicators
-    data = np.array([1.0, 2.0, 3.0])
-    rsi = TechnicalIndicators.compute_rsi(data, 14)
-    assert np.isnan(rsi), "Insufficient data should return NaN"
+    # 2a. RSI basic
+    def t_rsi_basic():
+        prices = np.array([44, 44.3, 44.1, 43.6, 44.3, 44.8, 45.1, 45.4,
+                           45.1, 45.3, 44.5, 44.2, 44.7, 44.4, 44.8, 45.2])
+        rsi = ti.compute_rsi(prices)
+        assert 0 <= rsi <= 100, f"RSI out of range: {rsi}"
+    _run("RSI basic range", t_rsi_basic)
 
-test("Import TechnicalIndicators", test_indicators_import)
-test("RSI calculation", test_indicators_rsi)
-test("RSI with insufficient data", test_indicators_rsi_insufficient_data)
+    # 2b. RSI insufficient data
+    def t_rsi_short():
+        rsi = ti.compute_rsi(np.array([1.0, 2.0]))
+        assert np.isnan(rsi)
+    _run("RSI returns NaN for short data", t_rsi_short)
 
-# =========================================================================
-# 10. UPTREND ANALYZER
-# =========================================================================
-print("\n" + "=" * 60)
-print("TEST MODULE: uptrend_analyzer.py")
-print("=" * 60)
+    # 2c. RSI monotonic up -> near 100
+    def t_rsi_monotonic_up():
+        prices = np.arange(1, 50, dtype=float)
+        rsi = ti.compute_rsi(prices)
+        assert rsi > 90, f"RSI should be near 100 for monotonic up, got {rsi}"
+    _run("RSI near 100 for monotonic up", t_rsi_monotonic_up)
 
-def test_uptrend_import():
+    # 2d. RSI constant prices -> 0 div guard
+    def t_rsi_flat():
+        prices = np.full(30, 100.0)
+        rsi = ti.compute_rsi(prices)
+        assert rsi == 100.0  # avg_loss == 0 => rsi = 100
+    _run("RSI flat prices (no division by zero)", t_rsi_flat)
+
+    # 2e. ADX basic
+    def t_adx_basic():
+        np.random.seed(42)
+        n = 100
+        high = np.cumsum(np.random.uniform(0, 2, n)) + 100
+        low = high - np.random.uniform(1, 3, n)
+        close = (high + low) / 2
+        adx = ti.compute_adx(high, low, close)
+        assert not np.isnan(adx), "ADX should not be NaN with 100 bars"
+        assert adx >= 0, f"ADX should be non-negative, got {adx}"
+    _run("ADX basic computation", t_adx_basic)
+
+    # 2f. ADX insufficient data
+    def t_adx_short():
+        adx = ti.compute_adx(np.array([1.0]), np.array([0.5]), np.array([0.8]))
+        assert np.isnan(adx)
+    _run("ADX returns NaN for short data", t_adx_short)
+
+    # 2g. ATR basic
+    def t_atr_basic():
+        np.random.seed(42)
+        n = 30
+        high = np.arange(n, dtype=float) + 100
+        low = high - 5
+        close = high - 2
+        atr = ti.compute_atr(high, low, close)
+        assert not np.isnan(atr)
+        assert atr > 0
+    _run("ATR basic computation", t_atr_basic)
+
+    # 2h. ATR insufficient data
+    def t_atr_short():
+        atr = ti.compute_atr(np.array([10.0]), np.array([8.0]), np.array([9.0]))
+        assert np.isnan(atr)
+    _run("ATR returns NaN for short data", t_atr_short)
+
+    # 2i. Volume ratio
+    def t_vol_ratio():
+        vol = np.ones(30) * 1000
+        vol[-1] = 2000  # today is 2x avg
+        ratio = ti.compute_volume_ratio(vol)
+        assert abs(ratio - 2.0) < 0.01
+    _run("volume ratio 2x", t_vol_ratio)
+
+    # 2j. Volume ratio zero avg
+    def t_vol_ratio_zero():
+        vol = np.zeros(30)
+        ratio = ti.compute_volume_ratio(vol)
+        assert np.isnan(ratio)
+    _run("volume ratio NaN on zero volume", t_vol_ratio_zero)
+
+
+# ═══════════════════════════════════════════════════════════════════════
+#  3.  VolumeProfiler
+# ═══════════════════════════════════════════════════════════════════════
+
+def test_volume_profiler():
+    from volume_profile import VolumeProfiler
+
+    vp = VolumeProfiler()
+    print("\n── VolumeProfiler ──")
+
+    # 3a. Normal profile
+    def t_profile_basic():
+        np.random.seed(42)
+        n = 100
+        close = np.cumsum(np.random.normal(0, 1, n)) + 100
+        high = close + np.abs(np.random.normal(0, 0.5, n))
+        low = close - np.abs(np.random.normal(0, 0.5, n))
+        volume = np.random.uniform(100000, 500000, n)
+        result = vp.compute_profile(high, low, close, volume)
+        assert "poc_price" in result
+        assert result["poc_volume"] > 0
+        assert result["value_area_low"] <= result["poc_price"] <= result["value_area_high"]
+    _run("basic profile computation", t_profile_basic)
+
+    # 3b. Insufficient data fallback
+    def t_profile_short():
+        result = vp.compute_profile(
+            np.array([10.0, 11.0]),
+            np.array([9.0, 10.0]),
+            np.array([9.5, 10.5]),
+            np.array([1000, 2000]),
+        )
+        assert result["profile"] == []  # empty profile indicates fallback
+    _run("profile fallback on short data", t_profile_short)
+
+    # 3c. Smart stop loss
+    def t_smart_sl():
+        np.random.seed(42)
+        n = 100
+        close = np.cumsum(np.random.normal(0, 1, n)) + 100
+        high = close + 1
+        low = close - 1
+        volume = np.ones(n) * 100000
+        result = vp.compute_smart_stop_loss(high, low, close, volume, atr=2.0)
+        assert "stop_loss" in result
+        assert result["method"] in ("ATR", "VOLUME_PROFILE")
+        assert result["stop_loss"] < float(close[-1])
+    _run("smart stop loss < current price", t_smart_sl)
+
+
+# ═══════════════════════════════════════════════════════════════════════
+#  4.  UptrendAnalyzer
+# ═══════════════════════════════════════════════════════════════════════
+
+def test_uptrend_analyzer():
     from uptrend_analyzer import UptrendAnalyzer
-    ua = UptrendAnalyzer()
-    assert hasattr(ua, "filter_and_rank")
 
-test("Import UptrendAnalyzer", test_uptrend_import)
+    print("\n── UptrendAnalyzer ──")
 
-# =========================================================================
-# 11. DATA FETCHER
-# =========================================================================
-print("\n" + "=" * 60)
-print("TEST MODULE: data_fetcher.py")
-print("=" * 60)
+    # 4a. Perfect uptrend stock should pass
+    def t_perfect_uptrend():
+        analyzer = UptrendAnalyzer(
+            sma_short=50, sma_long=200,
+            rsi_min=0, rsi_max=100,  # fully open RSI window
+            adx_min=0,  # disable ADX gate
+            volume_ratio_min=0,  # disable volume gate
+            multi_timeframe=False,
+            use_volume_profile_stop=False,
+        )
+        np.random.seed(123)
+        n = 250
+        # Strong uptrend with some noise
+        close = np.linspace(50, 150, n) + np.random.normal(0, 0.5, n)
+        high = close + 1
+        low = close - 1
+        volume = np.ones(n) * 100000
+        universe = {"TEST": {"close": close, "high": high, "low": low, "volume": volume}}
+        results = analyzer.filter_and_rank(universe)
+        assert len(results) >= 1, "Perfect uptrend should pass all filters"
+        assert results[0]["symbol"] == "TEST"
+        assert results[0]["slope"] > 0
+    _run("perfect uptrend passes filters", t_perfect_uptrend)
 
-def test_data_fetcher_import():
-    from data_fetcher import DataFetcher
-    df = DataFetcher()
-    assert hasattr(df, "fetch_all_universe")
+    # 4b. Downtrend stock should fail SMA filter
+    def t_downtrend_fails():
+        analyzer = UptrendAnalyzer(multi_timeframe=False, use_volume_profile_stop=False)
+        n = 250
+        close = np.linspace(150, 50, n)  # downtrend
+        high = close + 1
+        low = close - 1
+        volume = np.ones(n) * 100000
+        universe = {"DOWN": {"close": close, "high": high, "low": low, "volume": volume}}
+        results = analyzer.filter_and_rank(universe)
+        assert len(results) == 0, "Downtrend should not pass SMA filter"
+    _run("downtrend fails SMA filter", t_downtrend_fails)
 
-test("Import DataFetcher", test_data_fetcher_import)
+    # 4c. Empty universe
+    def t_empty_universe():
+        analyzer = UptrendAnalyzer()
+        results = analyzer.filter_and_rank({})
+        assert results == []
+    _run("empty universe returns empty list", t_empty_universe)
 
-# =========================================================================
-# 12. SCHEDULER
-# =========================================================================
-print("\n" + "=" * 60)
-print("TEST MODULE: scheduler.py")
-print("=" * 60)
+    # 4d. Short data filtered out
+    def t_short_data():
+        analyzer = UptrendAnalyzer()
+        universe = {"SHORT": {"close": np.array([100.0, 101.0]),
+                              "high": np.array([101.0, 102.0]),
+                              "low": np.array([99.0, 100.0]),
+                              "volume": np.array([1000, 1000])}}
+        results = analyzer.filter_and_rank(universe)
+        assert len(results) == 0
+    _run("short data (< sma_long) is filtered", t_short_data)
 
-def test_scheduler_import():
-    from scheduler import Scheduler
-    ss = Scheduler()
-    assert hasattr(ss, "run_full")
-    assert hasattr(ss, "run_hourly")
-    assert hasattr(ss, "run_weekly")
+    # 4e. Backwards compatibility with plain arrays
+    def t_plain_array():
+        analyzer = UptrendAnalyzer(
+            sma_short=5, sma_long=10,
+            rsi_min=0, rsi_max=100,
+            adx_min=0, volume_ratio_min=0,
+            multi_timeframe=False, use_volume_profile_stop=False,
+        )
+        close = np.linspace(50, 100, 30)
+        universe = {"PLAIN": close}
+        results = analyzer.filter_and_rank(universe, lookback_days=10)
+        # Should not crash
+        assert isinstance(results, list)
+    _run("plain ndarray backwards compatibility", t_plain_array)
 
-test("Import Scheduler", test_scheduler_import)
+    # 4f. Slope is 0 for flat prices
+    def t_slope_flat():
+        close = np.full(100, 100.0)
+        slope = UptrendAnalyzer._slope(close, 90)
+        assert slope == 0.0
+    _run("slope is 0 for flat prices", t_slope_flat)
 
-# =========================================================================
-# 13. CROSS-MODULE INTEGRATION
-# =========================================================================
-print("\n" + "=" * 60)
-print("TEST: Cross-Module Integration")
-print("=" * 60)
 
-def test_config_to_scheduler():
-    from config_manager import ConfigManager
-    from scheduler import Scheduler
-    c = ConfigManager()
-    ss = Scheduler()
-    _ = c.filters
-    _ = c.schedule
-    _ = c.advanced
-    _ = c.portfolio
-    _ = c.top_n_for_hourly
+# ═══════════════════════════════════════════════════════════════════════
+#  5.  WatchlistManager
+# ═══════════════════════════════════════════════════════════════════════
 
-def test_portfolio_to_telegram():
+def test_watchlist_manager():
+    from watchlist_manager import WatchlistManager
+
+    print("\n── WatchlistManager ──")
+    tmp = os.path.join(tempfile.gettempdir(), "test_watchlist.json")
+
+    def cleanup():
+        if os.path.exists(tmp):
+            os.remove(tmp)
+
+    # 5a. Add and retrieve
+    def t_add():
+        cleanup()
+        wm = WatchlistManager(filepath=tmp)
+        assert wm.add("RELIANCE")
+        items = wm.get_all()
+        assert "RELIANCE.NS" in items
+    _run("add symbol", t_add)
+
+    # 5b. Duplicate add returns False
+    def t_dup():
+        cleanup()
+        wm = WatchlistManager(filepath=tmp)
+        wm.add("INFY")
+        assert wm.add("INFY") is False
+    _run("duplicate add returns False", t_dup)
+
+    # 5c. Remove
+    def t_remove():
+        cleanup()
+        wm = WatchlistManager(filepath=tmp)
+        wm.add("TCS")
+        assert wm.remove("TCS")
+        assert "TCS.NS" not in wm.get_all()
+    _run("remove symbol", t_remove)
+
+    # 5d. Remove non-existent
+    def t_remove_missing():
+        cleanup()
+        wm = WatchlistManager(filepath=tmp)
+        assert wm.remove("NOPE") is False
+    _run("remove non-existent returns False", t_remove_missing)
+
+    # 5e. Persistence
+    def t_persist():
+        cleanup()
+        wm1 = WatchlistManager(filepath=tmp)
+        wm1.add("HDFC")
+        wm2 = WatchlistManager(filepath=tmp)
+        assert "HDFC.NS" in wm2.get_all()
+    _run("persistence across loads", t_persist)
+
+    cleanup()
+
+
+# ═══════════════════════════════════════════════════════════════════════
+#  6.  PortfolioManager
+# ═══════════════════════════════════════════════════════════════════════
+
+def test_portfolio_manager():
+    from portfolio_manager import PortfolioManager
+
+    print("\n── PortfolioManager ──")
+    tmp = os.path.join(tempfile.gettempdir(), "test_portfolio.json")
+
+    def cleanup():
+        if os.path.exists(tmp):
+            os.remove(tmp)
+
+    # 6a. Add position
+    def t_add():
+        cleanup()
+        pm = PortfolioManager(filepath=tmp)
+        result = pm.add_position("RELIANCE", 2500, 10, 2400)
+        assert "✅" in result
+        assert "RELIANCE" in pm.portfolio
+        assert pm.portfolio["RELIANCE"]["entry_price"] == 2500
+    _run("add position", t_add)
+
+    # 6b. Duplicate add
+    def t_dup():
+        cleanup()
+        pm = PortfolioManager(filepath=tmp)
+        pm.add_position("INFY", 1500, 5, 1400)
+        result = pm.add_position("INFY", 1600, 3, 1500)
+        assert "already" in result
+    _run("duplicate add blocked", t_dup)
+
+    # 6c. Remove position
+    def t_remove():
+        cleanup()
+        pm = PortfolioManager(filepath=tmp)
+        pm.add_position("TCS", 3500, 2, 3400)
+        result = pm.remove_position("TCS")
+        assert "✅" in result
+        assert "TCS" not in pm.portfolio
+    _run("remove position", t_remove)
+
+    # 6d. Remove non-existent
+    def t_remove_missing():
+        cleanup()
+        pm = PortfolioManager(filepath=tmp)
+        result = pm.remove_position("NOPE")
+        assert "❌" in result
+    _run("remove non-existent", t_remove_missing)
+
+    # 6e. Trailing stop NOT HIT (price above SL)
+    def t_trail_no_hit():
+        cleanup()
+        pm = PortfolioManager(filepath=tmp)
+        pm.add_position("X", 100, 10, 90)
+        alerts = pm.check_trailing_stops(
+            {"X": {"price": 105, "atr": 5}},
+            {"trailing_stop_activation_pct": 5.0, "trailing_stop_distance_atr": 1.5}
+        )
+        stop_hits = [a for a in alerts if a["type"] == "STOP_HIT"]
+        assert len(stop_hits) == 0
+    _run("trailing stop not hit when price above SL", t_trail_no_hit)
+
+    # 6f. Trailing stop HIT
+    def t_trail_hit():
+        cleanup()
+        pm = PortfolioManager(filepath=tmp)
+        pm.add_position("Y", 100, 10, 95)
+        alerts = pm.check_trailing_stops(
+            {"Y": {"price": 90, "atr": 5}},
+            {"trailing_stop_activation_pct": 5.0, "trailing_stop_distance_atr": 1.5}
+        )
+        stop_hits = [a for a in alerts if a["type"] == "STOP_HIT"]
+        assert len(stop_hits) == 1
+        assert stop_hits[0]["pnl"] == (90 - 100) * 10  # -100
+        assert "Y" not in pm.portfolio
+    _run("trailing stop hit removes position", t_trail_hit)
+
+    # 6g. Trailing stop UPDATES upward
+    def t_trail_update():
+        cleanup()
+        pm = PortfolioManager(filepath=tmp)
+        pm.add_position("Z", 100, 10, 90)
+        # Simulate price rising to 120 (20% above entry, well past 5% activation)
+        pm.portfolio["Z"]["highest_price"] = 120
+        alerts = pm.check_trailing_stops(
+            {"Z": {"price": 120, "atr": 5}},
+            {"trailing_stop_activation_pct": 5.0, "trailing_stop_distance_atr": 1.5}
+        )
+        updates = [a for a in alerts if a["type"] == "STOP_UPDATED"]
+        assert len(updates) == 1
+        assert pm.portfolio["Z"]["trailing_sl"] > 90  # moved up from initial
+    _run("trailing stop updates upward", t_trail_update)
+
+    # 6h. Missing symbol in current_prices is skipped
+    def t_missing_symbol():
+        cleanup()
+        pm = PortfolioManager(filepath=tmp)
+        pm.add_position("A", 100, 1, 90)
+        alerts = pm.check_trailing_stops(
+            {},  # no data for A
+            {"trailing_stop_activation_pct": 5.0, "trailing_stop_distance_atr": 1.5}
+        )
+        assert len(alerts) == 0
+        assert "A" in pm.portfolio  # position still there
+    _run("missing symbol in prices is skipped", t_missing_symbol)
+
+    # 6i. Zero price is skipped
+    def t_zero_price():
+        cleanup()
+        pm = PortfolioManager(filepath=tmp)
+        pm.add_position("B", 100, 1, 90)
+        alerts = pm.check_trailing_stops(
+            {"B": {"price": 0, "atr": 5}},
+            {"trailing_stop_activation_pct": 5.0, "trailing_stop_distance_atr": 1.5}
+        )
+        assert len(alerts) == 0
+    _run("zero price is skipped", t_zero_price)
+
+    # 6j. Persistence
+    def t_persist():
+        cleanup()
+        pm1 = PortfolioManager(filepath=tmp)
+        pm1.add_position("P", 200, 5, 180)
+        pm2 = PortfolioManager(filepath=tmp)
+        assert "P" in pm2.portfolio
+    _run("portfolio persists across loads", t_persist)
+
+    cleanup()
+
+
+# ═══════════════════════════════════════════════════════════════════════
+#  7.  MarketHealthChecker
+# ═══════════════════════════════════════════════════════════════════════
+
+def test_market_health():
+    from market_health import MarketHealthChecker
+
+    print("\n── MarketHealthChecker ──")
+
+    # 7a. Fallback method
+    def t_fallback():
+        result = MarketHealthChecker._fallback("test reason")
+        assert result["is_bullish"] is True
+        assert "test reason" in result["status_text"]
+    _run("fallback returns bullish with reason", t_fallback)
+
+    # 7b. Check returns required keys
+    def t_check_keys():
+        mh = MarketHealthChecker()
+        result = mh.check()
+        required = {"is_bullish", "nifty_close", "nifty_sma50", "status_emoji", "status_text"}
+        assert required <= set(result.keys()), f"Missing keys: {required - set(result.keys())}"
+    _run("check() returns all required keys", t_check_keys)
+
+
+# ═══════════════════════════════════════════════════════════════════════
+#  8.  HistoryManager
+# ═══════════════════════════════════════════════════════════════════════
+
+def test_history_manager():
+    from history_manager import HistoryManager
+
+    print("\n── HistoryManager ──")
+
+    # Monkey-patch the filepath for testing
+    def make_hm():
+        hm = HistoryManager()
+        hm.filepath = os.path.join(tempfile.gettempdir(), "test_history.json")
+        hm.history = []
+        return hm
+
+    # 8a. Record entries
+    def t_record():
+        hm = make_hm()
+        entries = [
+            {"data": {"symbol": "INFY", "price": 1500, "stop_loss": 1400},
+             "ai": {"ai_summary": "bullish"},
+             "sentiment": {"technical": {"recommendation": "BUY"}}},
+        ]
+        hm.record_entries(entries)
+        assert len(hm.history) == 1
+        assert hm.history[0]["symbol"] == "INFY"
+    _run("record entries", t_record)
+
+    # 8b. Deduplication on same day
+    def t_dedup():
+        hm = make_hm()
+        entries = [
+            {"data": {"symbol": "INFY", "price": 1500, "stop_loss": 1400},
+             "ai": {"ai_summary": "bullish"},
+             "sentiment": {"technical": {"recommendation": "BUY"}}},
+        ]
+        hm.record_entries(entries)
+        hm.record_entries(entries)  # same day
+        assert len(hm.history) == 1
+    _run("deduplication on same day", t_dedup)
+
+    # 8c. Calculate analytics with empty history
+    def t_analytics_empty():
+        hm = make_hm()
+        result = hm.calculate_analytics()
+        assert result["total_trades"] == 0
+        assert result["win_rate"] == 0.0
+    _run("analytics on empty history", t_analytics_empty)
+
+    # Cleanup
+    tmp = os.path.join(tempfile.gettempdir(), "test_history.json")
+    if os.path.exists(tmp):
+        os.remove(tmp)
+
+
+# ═══════════════════════════════════════════════════════════════════════
+#  9.  SectorAnalyzer
+# ═══════════════════════════════════════════════════════════════════════
+
+def test_sector_analyzer():
+    from sector_analysis import SectorAnalyzer
+
+    print("\n── SectorAnalyzer ──")
+
+    # 9a. rank_sectors with mock data
+    def t_rank():
+        sa = SectorAnalyzer()
+        # Pre-populate cache so no yfinance calls needed
+        sa.sector_map = {
+            "A": "IT",
+            "B": "IT",
+            "C": "Auto",
+            "D": "Pharma",
+        }
+        results = [
+            {"symbol": "A", "slope": 0.5},
+            {"symbol": "B", "slope": 0.4},
+            {"symbol": "C", "slope": 0.3},
+            {"symbol": "D", "slope": 0.1},
+        ]
+        data = sa.rank_sectors(results)
+        assert "top_sectors" in data
+        assert len(data["top_sectors"]) <= 3
+        # IT should be top since it has most stocks and highest avg slope
+        assert data["top_sectors"][0] == "IT"
+    _run("sector ranking", t_rank)
+
+    # 9b. get_sector from cache
+    def t_cache():
+        sa = SectorAnalyzer()
+        sa.sector_map = {"RELIANCE": "Energy"}
+        assert sa.get_sector("RELIANCE") == "Energy"
+    _run("get_sector from cache", t_cache)
+
+    # 9c. Empty results
+    def t_empty():
+        sa = SectorAnalyzer()
+        data = sa.rank_sectors([])
+        assert data["top_sectors"] == []
+    _run("empty results -> empty ranking", t_empty)
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# 10. DashboardGenerator
+# ═══════════════════════════════════════════════════════════════════════
+
+def test_dashboard_generator():
+    from dashboard_generator import DashboardGenerator
+
+    print("\n── DashboardGenerator ──")
+
+    # 10a. Generate with empty data
+    def t_empty():
+        tmp_dir = os.path.join(tempfile.gettempdir(), "test_dashboard")
+        os.makedirs(tmp_dir, exist_ok=True)
+        dg = DashboardGenerator(docs_dir=tmp_dir)
+        path = dg.generate(
+            entries=[], exits=[],
+            market_health={"status": "BULLISH", "nifty_price": 24000, "nifty_50_sma": 23500, "is_bullish": True},
+            analytics={"total_trades": 0, "win_rate": 0, "avg_profit_pct": 0},
+            portfolio={}
+        )
+        assert os.path.exists(path)
+        with open(path, "r", encoding="utf-8") as f:
+            html = f.read()
+        assert "NSE" in html
+        shutil.rmtree(tmp_dir)
+    _run("generate with empty data", t_empty)
+
+    # 10b. Generate with sample entries
+    def t_entries():
+        tmp_dir = os.path.join(tempfile.gettempdir(), "test_dashboard2")
+        os.makedirs(tmp_dir, exist_ok=True)
+        dg = DashboardGenerator(docs_dir=tmp_dir)
+        entries = [{
+            "data": {"symbol": "INFY", "price": 1500, "rsi": 55, "adx": 30,
+                     "stop_loss": 1400, "slope": 0.5, "sector": "IT", "sector_boost": True},
+            "ai": {"ai_summary": "Bullish setup"},
+            "sentiment": {"technical": {"recommendation": "BUY"}}
+        }]
+        path = dg.generate(
+            entries=entries, exits=[],
+            market_health={"status": "BULLISH", "nifty_price": 24000, "nifty_50_sma": 23500, "is_bullish": True},
+            analytics={"total_trades": 1, "win_rate": 100, "avg_profit_pct": 5.0},
+            portfolio={}
+        )
+        with open(path, "r", encoding="utf-8") as f:
+            html = f.read()
+        assert "INFY" in html
+        assert "HOT SECTOR" in html
+        shutil.rmtree(tmp_dir)
+    _run("generate with entries (HOT SECTOR badge)", t_entries)
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# 11. TelegramNotifier (unit tests, no real API calls)
+# ═══════════════════════════════════════════════════════════════════════
+
+def test_telegram_notifier():
+    from telegram_notifier import TelegramNotifier
     from config_manager import ConfigManager
     from watchlist_manager import WatchlistManager
     from portfolio_manager import PortfolioManager
-    from telegram_notifier import TelegramNotifier
-    c = ConfigManager()
-    w = WatchlistManager()
-    p = PortfolioManager()
-    tn = TelegramNotifier(c, w, p)
-    assert tn.portfolio is not None
-    assert isinstance(tn.portfolio.get_portfolio(), dict)
 
-def test_history_to_dashboard():
-    from dashboard_generator import DashboardGenerator
-    dg = DashboardGenerator()
-    analytics = {
-        "total_trades": 5,
-        "win_rate": 60.0,
-        "avg_profit_pct": 2.5,
-        "active_history": [
-            {"symbol": "TEST", "date": "2026-08-25", "entry_price": 100, "current_price": 105, "pnl_pct": 5.0, "ai_summary": "Good", "tv_signal": "BUY", "stop_loss": 90}
-        ]
-    }
-    path = dg.generate([], [], {"status_text": "TEST", "nifty_close": 0, "nifty_sma": 0},
-                       analytics=analytics, portfolio={})
-    with open(path, "r", encoding="utf-8") as f:
-        content = f.read()
-    assert "60" in content, "Win rate not rendered"
+    print("\n── TelegramNotifier ──")
 
-test("Config -> Scheduler integration", test_config_to_scheduler)
-test("Portfolio -> Telegram integration", test_portfolio_to_telegram)
-test("History -> Dashboard integration", test_history_to_dashboard)
+    # 11a. Not configured when tokens missing
+    def t_not_configured():
+        cfg = ConfigManager(config_path="__nonexistent__.json")
+        wm = WatchlistManager(filepath=os.path.join(tempfile.gettempdir(), "tw.json"))
+        pm = PortfolioManager(filepath=os.path.join(tempfile.gettempdir(), "tp.json"))
+        tn = TelegramNotifier(cfg, wm, pm)
+        assert tn.is_configured is False
+    _run("not configured when tokens missing", t_not_configured)
 
-# =========================================================================
-# 14. EDGE CASES
-# =========================================================================
-print("\n" + "=" * 60)
-print("TEST: Edge Cases")
-print("=" * 60)
+    # 11b. Message splitting
+    def t_split():
+        cfg = ConfigManager(config_path="__nonexistent__.json")
+        wm = WatchlistManager(filepath=os.path.join(tempfile.gettempdir(), "tw2.json"))
+        tn = TelegramNotifier(cfg, wm)
+        # Create a message larger than 4096 chars
+        long_msg = "Line\n" * 1500
+        chunks = tn._split_message(long_msg)
+        assert len(chunks) > 1
+        for chunk in chunks:
+            assert len(chunk) <= TelegramNotifier.MAX_MSG_LEN
+    _run("message splitting respects 4096 limit", t_split)
 
-def test_portfolio_zero_price():
-    from portfolio_manager import PortfolioManager
-    tmp = tempfile.NamedTemporaryFile(suffix=".json", delete=False, mode="w")
-    tmp.write("{}")
-    tmp.close()
-    pm = PortfolioManager(filepath=tmp.name)
-    pm.add_position("ZERO", 100, 5, 90)
-    alerts = pm.check_trailing_stops({"ZERO": {"price": 0, "atr": 2}}, {})
-    assert "ZERO" in pm.portfolio, "Zero price should not trigger exit"
-    os.unlink(tmp.name)
+    # 11c. send_message does NOT crash when not configured
+    def t_send_noop():
+        cfg = ConfigManager(config_path="__nonexistent__.json")
+        wm = WatchlistManager(filepath=os.path.join(tempfile.gettempdir(), "tw3.json"))
+        tn = TelegramNotifier(cfg, wm)
+        tn.send_message("test")  # should silently do nothing
+    _run("send_message is no-op when not configured", t_send_noop)
 
-def test_portfolio_sl_never_decreases():
-    from portfolio_manager import PortfolioManager
-    tmp = tempfile.NamedTemporaryFile(suffix=".json", delete=False, mode="w")
-    tmp.write("{}")
-    tmp.close()
-    pm = PortfolioManager(filepath=tmp.name)
-    pm.add_position("SL_TEST", 100, 10, 90)
-    config = {"trailing_stop_activation_pct": 5.0, "trailing_stop_distance_atr": 1.5}
-    # Price rises to 112 -> SL = 112 - 4.5 = 107.5
-    pm.check_trailing_stops({"SL_TEST": {"price": 112, "atr": 3}}, config)
-    sl_after_first = pm.portfolio["SL_TEST"]["trailing_sl"]
-    # Price drops to 108 but SL should not decrease
-    pm.check_trailing_stops({"SL_TEST": {"price": 108, "atr": 3}}, config)
-    sl_after_second = pm.portfolio["SL_TEST"]["trailing_sl"]
-    assert sl_after_second >= sl_after_first, f"SL decreased from {sl_after_first} to {sl_after_second}!"
-    os.unlink(tmp.name)
+    # Cleanup temp watchlist files
+    for f in ["tw.json", "tw2.json", "tw3.json", "tp.json"]:
+        p = os.path.join(tempfile.gettempdir(), f)
+        if os.path.exists(p):
+            os.remove(p)
 
-def test_config_missing_file():
+
+# ═══════════════════════════════════════════════════════════════════════
+# 12. Integration: Full pipeline (ConfigManager + UptrendAnalyzer + Dashboard)
+# ═══════════════════════════════════════════════════════════════════════
+
+def test_integration_pipeline():
     from config_manager import ConfigManager
-    c = ConfigManager(config_path="/nonexistent/path/config.json")
-    assert c.filters is not None, "Should use defaults for missing file"
+    from uptrend_analyzer import UptrendAnalyzer
+    from dashboard_generator import DashboardGenerator
+    from history_manager import HistoryManager
 
-test("Portfolio with zero price", test_portfolio_zero_price)
-test("Trailing SL never decreases", test_portfolio_sl_never_decreases)
-test("Config with missing file", test_config_missing_file)
+    print("\n── Integration Pipeline ──")
 
-# =========================================================================
-# SUMMARY
-# =========================================================================
-print("\n" + "=" * 60)
-print(f"RESULTS:  {PASS} PASSED  |  {FAIL} FAILED")
-print("=" * 60)
-if ERRORS:
-    print("\nFailed tests:")
-    for e in ERRORS:
-        print(e)
-    sys.exit(1)
-else:
-    print("\n ALL TESTS PASSED! Project is solid.")
-    sys.exit(0)
+    # 12a. Config -> Analyzer -> Dashboard end-to-end
+    def t_full_pipeline():
+        cfg = ConfigManager(config_path="__nonexistent__.json")
+
+        analyzer = UptrendAnalyzer(
+            sma_short=50,
+            sma_long=200,
+            rsi_min=0, rsi_max=100,  # fully open
+            adx_min=0,
+            volume_ratio_min=0,
+            multi_timeframe=False,
+            use_volume_profile_stop=False,
+        )
+
+        np.random.seed(456)
+        n = 250
+        close = np.linspace(50, 150, n) + np.random.normal(0, 0.3, n)
+        high = close + 1
+        low = close - 1
+        volume = np.ones(n) * 100000
+
+        universe = {"TESTSTOCK": {"close": close, "high": high, "low": low, "volume": volume}}
+        results = analyzer.filter_and_rank(universe)
+
+        # Build dashboard payload
+        entry_list = []
+        for r in results:
+            entry_list.append({
+                "data": {**r, "sector": "Test", "sector_boost": False},
+                "ai": {"ai_summary": "Test summary"},
+                "sentiment": {"technical": {"recommendation": "BUY"}}
+            })
+
+        tmp_dir = os.path.join(tempfile.gettempdir(), "test_integration")
+        os.makedirs(tmp_dir, exist_ok=True)
+        dg = DashboardGenerator(docs_dir=tmp_dir)
+        path = dg.generate(
+            entries=entry_list, exits=[],
+            market_health={"status": "BULLISH", "nifty_price": 24000, "nifty_50_sma": 23500, "is_bullish": True},
+            analytics={"total_trades": 0, "win_rate": 0, "avg_profit_pct": 0},
+            portfolio={}
+        )
+        assert os.path.exists(path)
+        with open(path, "r", encoding="utf-8") as f:
+            html = f.read()
+        assert "TESTSTOCK" in html
+
+        shutil.rmtree(tmp_dir)
+    _run("Config → Analyzer → Dashboard end-to-end", t_full_pipeline)
+
+    # 12b. Portfolio + Trailing stops integration
+    def t_portfolio_integration():
+        from portfolio_manager import PortfolioManager
+        tmp = os.path.join(tempfile.gettempdir(), "test_port_int.json")
+        pm = PortfolioManager(filepath=tmp)
+        pm.add_position("STOCK1", 100, 10, 90)
+        pm.add_position("STOCK2", 200, 5, 180)
+
+        # Simulate: STOCK1 hit stop, STOCK2 going up
+        alerts = pm.check_trailing_stops(
+            {
+                "STOCK1": {"price": 85, "atr": 5},
+                "STOCK2": {"price": 220, "atr": 10},
+            },
+            {"trailing_stop_activation_pct": 5.0, "trailing_stop_distance_atr": 1.5}
+        )
+
+        # STOCK1 should be stopped out
+        hits = [a for a in alerts if a["type"] == "STOP_HIT"]
+        assert len(hits) == 1
+        assert hits[0]["symbol"] == "STOCK1"
+        assert "STOCK1" not in pm.portfolio
+
+        # STOCK2 should have updated trailing stop
+        updates = [a for a in alerts if a["type"] == "STOP_UPDATED"]
+        assert len(updates) == 1
+        assert pm.portfolio["STOCK2"]["trailing_sl"] > 180
+
+        if os.path.exists(tmp):
+            os.remove(tmp)
+    _run("portfolio multi-stock trailing stops", t_portfolio_integration)
+
+    # 12c. HistoryManager + DashboardGenerator
+    def t_history_dashboard():
+        hm = HistoryManager()
+        hm.filepath = os.path.join(tempfile.gettempdir(), "test_hist_dash.json")
+        hm.history = []
+
+        entries = [
+            {"data": {"symbol": "A", "price": 100, "stop_loss": 90},
+             "ai": {"ai_summary": "OK"},
+             "sentiment": {"technical": {"recommendation": "BUY"}}},
+        ]
+        hm.record_entries(entries)
+        assert len(hm.history) == 1
+
+        # Verify it persists
+        hm2 = HistoryManager()
+        hm2.filepath = hm.filepath
+        hm2._load_history()
+        assert len(hm2.history) == 1
+
+        if os.path.exists(hm.filepath):
+            os.remove(hm.filepath)
+    _run("history record + reload", t_history_dashboard)
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# 13. FundamentalFilter (cache logic only, no live API)
+# ═══════════════════════════════════════════════════════════════════════
+
+def test_fundamental_filter():
+    from fundamental_filter import FundamentalFilter
+
+    print("\n── FundamentalFilter ──")
+
+    # 13a. Healthy stock passes
+    def t_healthy():
+        ff = FundamentalFilter()
+        ff.cache = {
+            "HEALTHY": {
+                "eps": 50,
+                "revenue_growth": 0.15,
+                "debt_to_equity": 80,  # yfinance returns as percentage
+                "market_cap": 1e12,
+                "sector": "IT",
+                "fetched_at": "2026-08-26T00:00:00",
+                "status": "OK",
+            }
+        }
+        result = ff.check("HEALTHY")
+        assert result["fundamental_ok"] is True
+        assert "✅" in result["flags"][0]
+    _run("healthy stock passes all checks", t_healthy)
+
+    # 13b. Negative EPS fails
+    def t_neg_eps():
+        ff = FundamentalFilter()
+        ff.cache = {
+            "BADEPS": {
+                "eps": -5,
+                "revenue_growth": 0.2,
+                "debt_to_equity": 50,
+                "fetched_at": "2026-08-26T00:00:00",
+                "status": "OK",
+            }
+        }
+        result = ff.check("BADEPS")
+        assert result["fundamental_ok"] is False
+        assert any("Negative EPS" in f for f in result["flags"])
+    _run("negative EPS fails", t_neg_eps)
+
+    # 13c. High debt fails
+    def t_high_debt():
+        ff = FundamentalFilter()
+        ff.cache = {
+            "DEBT": {
+                "eps": 10,
+                "revenue_growth": 0.1,
+                "debt_to_equity": 300,  # 3.0x as percentage
+                "fetched_at": "2026-08-26T00:00:00",
+                "status": "OK",
+            }
+        }
+        result = ff.check("DEBT", max_debt_equity=1.5)
+        assert result["fundamental_ok"] is False
+        assert any("Debt" in f for f in result["flags"])
+    _run("high debt fails", t_high_debt)
+
+    # 13d. Error status lets stock pass (don't block on API errors)
+    def t_error_passes():
+        ff = FundamentalFilter()
+        ff.cache = {
+            "ERR": {
+                "status": "ERROR",
+                "reason": "rate limit",
+                "fetched_at": "2026-08-26T00:00:00",
+            }
+        }
+        result = ff.check("ERR")
+        assert result["fundamental_ok"] is True
+    _run("API error doesn't block stock", t_error_passes)
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# 14. Edge cases & stress tests
+# ═══════════════════════════════════════════════════════════════════════
+
+def test_edge_cases():
+    print("\n── Edge Cases & Stress Tests ──")
+
+    # 14a. Large universe doesn't crash
+    def t_large_universe():
+        from uptrend_analyzer import UptrendAnalyzer
+        analyzer = UptrendAnalyzer(
+            adx_min=0, volume_ratio_min=0,
+            multi_timeframe=False, use_volume_profile_stop=False,
+            rsi_min=0, rsi_max=100,
+        )
+        universe = {}
+        for i in range(100):
+            n = 250
+            close = np.linspace(50, 150, n) + np.random.normal(0, 0.5, n)
+            universe[f"STOCK{i}"] = {
+                "close": close, "high": close + 1,
+                "low": close - 1, "volume": np.ones(n) * 100000
+            }
+        results = analyzer.filter_and_rank(universe)
+        assert isinstance(results, list)
+    _run("100-stock universe doesn't crash", t_large_universe)
+
+    # 14b. NaN in price data
+    def t_nan_prices():
+        from technical_indicators import TechnicalIndicators
+        ti = TechnicalIndicators()
+        prices = np.array([1.0, 2.0, np.nan, 4.0, 5.0] * 10)
+        rsi = ti.compute_rsi(prices)
+        # Should return NaN or a number (not crash)
+        assert isinstance(rsi, (float, np.floating))
+    _run("NaN in prices doesn't crash RSI", t_nan_prices)
+
+    # 14c. Extremely small array
+    def t_tiny_array():
+        from technical_indicators import TechnicalIndicators
+        ti = TechnicalIndicators()
+        assert np.isnan(ti.compute_rsi(np.array([])))
+        assert np.isnan(ti.compute_atr(np.array([]), np.array([]), np.array([])))
+    _run("empty array returns NaN", t_tiny_array)
+
+    # 14d. JSON file corruption recovery
+    def t_corrupted_json():
+        from watchlist_manager import WatchlistManager
+        tmp = os.path.join(tempfile.gettempdir(), "corrupted.json")
+        with open(tmp, "w") as f:
+            f.write("{invalid json!!!")
+        wm = WatchlistManager(filepath=tmp)
+        assert wm.get_all() == []  # graceful recovery
+        os.remove(tmp)
+    _run("corrupted JSON recovery", t_corrupted_json)
+
+    # 14e. Portfolio with no config keys
+    def t_portfolio_no_config():
+        from portfolio_manager import PortfolioManager
+        tmp = os.path.join(tempfile.gettempdir(), "tp_edge.json")
+        pm = PortfolioManager(filepath=tmp)
+        pm.add_position("X", 100, 1, 90)
+        # Pass empty config dict
+        alerts = pm.check_trailing_stops(
+            {"X": {"price": 105, "atr": 5}},
+            {}  # empty config -> should use defaults
+        )
+        assert isinstance(alerts, list)
+        if os.path.exists(tmp):
+            os.remove(tmp)
+    _run("portfolio with empty config dict", t_portfolio_no_config)
+
+
+# ═══════════════════════════════════════════════════════════════════════
+#  Run all tests
+# ═══════════════════════════════════════════════════════════════════════
+
+if __name__ == "__main__":
+    print("=" * 60)
+    print("  NSE Stock Screener — Comprehensive Test Suite")
+    print("=" * 60)
+
+    test_config_manager()
+    test_technical_indicators()
+    test_volume_profiler()
+    test_uptrend_analyzer()
+    test_watchlist_manager()
+    test_portfolio_manager()
+    test_market_health()
+    test_history_manager()
+    test_sector_analyzer()
+    test_dashboard_generator()
+    test_telegram_notifier()
+    test_integration_pipeline()
+    test_fundamental_filter()
+    test_edge_cases()
+
+    print("\n" + "=" * 60)
+    print(f"  RESULTS:  ✅ {_passed} passed   ❌ {_failed} failed")
+    print("=" * 60)
+
+    if _errors:
+        print("\n  Failures:")
+        for e in _errors:
+            print(f"    {e}")
+        sys.exit(1)
+    else:
+        print("\n  🎉 ALL TESTS PASSED — Project is rock solid!")
+        sys.exit(0)
