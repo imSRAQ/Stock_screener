@@ -88,9 +88,17 @@ jobs:
           python scheduler.py --hourly
 
       - name: Commit and push changes
-        # Only push if there are changes (e.g. to universe snapshots or watchlist)
+        # Push index.html and any data files that changed.
+        # IMPORTANT: Each git add has its own || true so a missing file
+        # never prevents index.html from being staged and pushed.
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add -f stocks_monitoring_and_notifying/universe_snapshot*.json stocks_monitoring_and_notifying/latest_universe_data.json stocks_monitoring_and_notifying/watchlist.json stocks_monitoring_and_notifying/portfolio.json stocks_monitoring_and_notifying/fundamental_cache.json stocks_monitoring_and_notifying/historical_recommendations.json stocks_monitoring_and_notifying/docs/index.html || true
-          git diff --staged --quiet || (git commit -m "Auto-update snapshots and watchlist" && git push)
+          git add -f stocks_monitoring_and_notifying/docs/index.html || true
+          git add -f stocks_monitoring_and_notifying/latest_universe_data.json || true
+          git add -f stocks_monitoring_and_notifying/watchlist.json || true
+          git add -f stocks_monitoring_and_notifying/portfolio.json || true
+          git add -f stocks_monitoring_and_notifying/fundamental_cache.json || true
+          git add -f stocks_monitoring_and_notifying/historical_recommendations.json || true
+          git add -f stocks_monitoring_and_notifying/universe_snapshot*.json 2>/dev/null || true
+          git diff --staged --quiet || (git commit -m "Auto-update dashboard and snapshots" && git push)
