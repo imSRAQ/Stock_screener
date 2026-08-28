@@ -295,7 +295,8 @@ class Scheduler:
         market_health = MarketHealthChecker().check()
         
         if not os.path.exists(self.cache_data_file):
-            print("[warn] No cache found. Run --full first.")
+            print("[warn] No cache found. Falling back to full scan...")
+            self.run_full()
             return
             
         with open(self.cache_data_file, "r") as f:
