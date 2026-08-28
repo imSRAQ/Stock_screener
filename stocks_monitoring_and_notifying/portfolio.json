@@ -1,11 +1,4 @@
 {
-    "ATHERENERG": {
-        "entry_price": 1290.15,
-        "quantity": 3,
-        "initial_sl": 1225.6425,
-        "trailing_sl": 1366.82,
-        "highest_price": 1453.1
-    },
     "ACUTAAS": {
         "entry_price": 2408.12,
         "quantity": 6,
