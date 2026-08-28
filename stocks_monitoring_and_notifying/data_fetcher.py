@@ -160,6 +160,65 @@ class DataFetcher:
 
         return rows
 
+    def _fetch_yfinance_fallback(self, period_days: int, progress_callback=None) -> dict:
+        """Fallback to Yahoo Finance if NSE Bhavcopy is blocked."""
+        try:
+            import yfinance as yf
+        except ImportError:
+            print("[error] yfinance not installed. Cannot use fallback.")
+            return {}
+
+        symbols_file = os.path.join(os.path.dirname(__file__), "nse_symbols.txt")
+        if not os.path.exists(symbols_file):
+            print("[error] nse_symbols.txt not found. Cannot use fallback.")
+            return {}
+
+        with open(symbols_file, "r", encoding="utf-8") as f:
+            base_symbols = [line.strip() for line in f if line.strip()]
+        
+        if not base_symbols:
+            return {}
+            
+        yf_symbols = [f"{s}.NS" for s in base_symbols]
+        period_str = "1y" if period_days <= 250 else "2y"
+        
+        print(f"[info] Falling back to yfinance for {len(yf_symbols)} stocks (period={period_str})...")
+        print(f"[info] This takes a few minutes, please wait.")
+        
+        # Download all symbols in one go using threads
+        data = yf.download(yf_symbols, period=period_str, group_by="ticker", threads=True, progress=False)
+        
+        result = {}
+        min_required = int(period_days * 0.8)
+        
+        for i, (base_sym, yf_sym) in enumerate(zip(base_symbols, yf_symbols)):
+            if len(yf_symbols) == 1:
+                df = data.dropna(how="all")
+            else:
+                if yf_sym not in data:
+                    continue
+                df = data[yf_sym].dropna(how="all")
+                
+            if len(df) < min_required:
+                continue
+                
+            # Keep only the last 'period_days' rows if we got more
+            df = df.tail(period_days)
+                
+            result[base_sym] = {
+                "open": df["Open"].to_numpy(dtype=float),
+                "high": df["High"].to_numpy(dtype=float),
+                "low": df["Low"].to_numpy(dtype=float),
+                "close": df["Close"].to_numpy(dtype=float),
+                "volume": df["Volume"].to_numpy(dtype=float),
+            }
+            
+            if progress_callback and i % 500 == 0:
+                progress_callback(i, len(base_symbols))
+                
+        print(f"[info] Fallback complete. Acquired data for {len(result)} stocks.")
+        return result
+
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
@@ -237,5 +296,9 @@ class DataFetcher:
                 "close": np.array([p[4] for p in points], dtype=float),
                 "volume": np.array([p[5] for p in points], dtype=float),
             }
+
+        if not result:
+            print("[warn] Bhavcopy yielded 0 results (possibly blocked). Falling back to yfinance...")
+            return self._fetch_yfinance_fallback(period_days, progress_callback)
 
         return result
