@@ -830,5 +830,13 @@
         "stop_loss": 10.36,
         "ai_summary": "Technical setup: RSI 60.4, ADX 43.6, Slope 0.035. Stop-loss at Rs 10.36.",
         "tv_signal": "BUY"
+    },
+    {
+        "symbol": "TARSONS",
+        "date": "2026-08-31",
+        "entry_price": 332.25,
+        "stop_loss": 305.4,
+        "ai_summary": "Technical setup: RSI 53.3, ADX 38.5, Slope 0.036. Stop-loss at Rs 305.40.",
+        "tv_signal": "BUY"
     }
 ]
