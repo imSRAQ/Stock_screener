@@ -538,5 +538,86 @@
     "sector": "Industrials",
     "fetched_at": "2026-08-28T20:04:42.741583",
     "status": "OK"
+  },
+  "SKYGOLD": {
+    "eps": 21.75,
+    "revenue_growth": 0.779,
+    "debt_to_equity": 72.072,
+    "market_cap": 126005395456,
+    "sector": "Consumer Cyclical",
+    "fetched_at": "2026-08-31T08:53:52.706598",
+    "status": "OK"
+  },
+  "TBZ": {
+    "eps": 32.04,
+    "revenue_growth": 0.348,
+    "debt_to_equity": 105.734,
+    "market_cap": 20162656256,
+    "sector": "Consumer Cyclical",
+    "fetched_at": "2026-08-31T08:53:53.122360",
+    "status": "OK"
+  },
+  "SREEL": {
+    "eps": 15.14,
+    "revenue_growth": 0.203,
+    "debt_to_equity": 0.445,
+    "market_cap": 5754251776,
+    "sector": "Consumer Cyclical",
+    "fetched_at": "2026-08-31T08:53:53.542887",
+    "status": "OK"
+  },
+  "CARTRADE": {
+    "eps": 46.42,
+    "revenue_growth": 0.163,
+    "debt_to_equity": 5.363,
+    "market_cap": 145865998336,
+    "sector": "Consumer Cyclical",
+    "fetched_at": "2026-08-31T08:53:53.990567",
+    "status": "OK"
+  },
+  "NAVINFLUOR": {
+    "eps": 155.07,
+    "revenue_growth": 0.441,
+    "debt_to_equity": 32.091,
+    "market_cap": 443532967936,
+    "sector": "Basic Materials",
+    "fetched_at": "2026-08-31T08:53:54.408964",
+    "status": "OK"
+  },
+  "MINDACORP": {
+    "eps": 20.94,
+    "revenue_growth": 0.332,
+    "debt_to_equity": 55.351,
+    "market_cap": 167318077440,
+    "sector": "Consumer Cyclical",
+    "fetched_at": "2026-08-31T08:53:54.855533",
+    "status": "OK"
+  },
+  "GRWRHITECH": {
+    "eps": 166.89,
+    "revenue_growth": 0.279,
+    "debt_to_equity": 0.59,
+    "market_cap": 165844451328,
+    "sector": "Basic Materials",
+    "fetched_at": "2026-08-31T08:53:55.274506",
+    "status": "OK"
+  },
+  "EMAMIPAP": {
+    "eps": 14.3,
+    "revenue_growth": 0.218,
+    "debt_to_equity": 142.073,
+    "market_cap": 6887816704,
+    "sector": "Basic Materials",
+    "fetched_at": "2026-08-31T08:53:55.691989",
+    "status": "OK"
+  },
+  "SGMART": {
+    "eps": 9.87,
+    "revenue_growth": 0.144,
+    "debt_to_equity": 16.781,
+    "market_cap": 102447710208,
+    "sector": "Industrials",
+    "fetched_at": "2026-08-31T08:53:56.105571",
+    "status": "OK"
   }
 }
