@@ -838,5 +838,293 @@
         "stop_loss": 305.4,
         "ai_summary": "Technical setup: RSI 53.3, ADX 38.5, Slope 0.036. Stop-loss at Rs 305.40.",
         "tv_signal": "BUY"
+    },
+    {
+        "symbol": "YASHO",
+        "date": "2026-09-01",
+        "entry_price": 4208.5,
+        "stop_loss": 3852.07,
+        "ai_summary": "YASHO shows a powerful trend strength with an ADX of 62.2 and supportive RSI, favoring a long entry above 4208.5 with a stop loss at 3852.07. However, exercise caution as the zero volume ratio signals a lack of immediate liquidity and buying pressure.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "SHREEJISPG",
+        "date": "2026-09-01",
+        "entry_price": 644.6,
+        "stop_loss": 606.88,
+        "ai_summary": "A stable RSI of 54.8 combined with a healthy ADX of 28.6 supports a low-risk bullish entry at 644.6 with a stop loss set at 606.88. Caution is required due to flat volume activity, suggesting a wait for stronger institutional participation.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "INDIGOPNTS",
+        "date": "2026-09-01",
+        "entry_price": 1152.9,
+        "stop_loss": 1097.59,
+        "ai_summary": "A Strong Buy indicator backed by a robust ADX of 44.7 and healthy RSI presents a solid long entry above 1152.9 with a stop loss at 1097.59. Proceed with mild caution as the zero volume ratio indicates a need for immediate volume confirmation to sustain the move.",
+        "tv_signal": "STRONG_BUY"
+    },
+    {
+        "symbol": "KDDL",
+        "date": "2026-09-01",
+        "entry_price": 3929.6,
+        "stop_loss": 3686.7,
+        "ai_summary": "Strong momentum reflected by an RSI of 63.1 and ADX of 40.7 makes this a compelling bullish entry candidate above 3929.6 with SL at 3686.7. Exercise caution regarding position sizing until fresh buying volume actively validates the ongoing trend.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "SPORTKING",
+        "date": "2026-09-01",
+        "entry_price": 226.71,
+        "stop_loss": 211.22,
+        "ai_summary": "The stock presents a strong bullish setup backed by a STRONG_BUY rating, good momentum with RSI at 61.5, and developing trend strength. Investors can consider buying near 226 with a strict stop-loss set at 211.22.",
+        "tv_signal": "STRONG_BUY"
+    },
+    {
+        "symbol": "SOTL",
+        "date": "2026-09-01",
+        "entry_price": 688.5,
+        "stop_loss": 639.64,
+        "ai_summary": "Backed by a STRONG_BUY rating, healthy RSI of 54.3, and solid trend strength, the stock offers a favorable risk-reward setup. Consider initiating positions near current levels while maintaining a disciplined stop-loss at 639.64.",
+        "tv_signal": "STRONG_BUY"
+    },
+    {
+        "symbol": "SREEL",
+        "date": "2026-09-01",
+        "entry_price": 247.8,
+        "stop_loss": 229.78,
+        "ai_summary": "Bullish trend strength is supported by a solid ADX of 47.0 and healthy RSI momentum, offering a favorable buy setup. Keep a strict stop loss at 229.78 and monitor for volume confirmation to validate the breakout.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "SSWL",
+        "date": "2026-09-01",
+        "entry_price": 305.65,
+        "stop_loss": 289.87,
+        "ai_summary": "A Strong Buy signal aligned with healthy RSI at 57.6 and robust ADX of 34.1 signals solid upside potential. Consider entering at current levels with a risk-managed stop loss placed at 289.87.",
+        "tv_signal": "STRONG_BUY"
+    },
+    {
+        "symbol": "DIVGIITTS",
+        "date": "2026-09-01",
+        "entry_price": 1186.7,
+        "stop_loss": 1104.55,
+        "ai_summary": "Strong momentum indicated by an ADX of 43.1 and RSI near 60 makes this an attractive bullish entry candidate. Initiate longs near current prices while placing a stop loss at 1104.55 to manage risk.",
+        "tv_signal": "STRONG_BUY"
+    },
+    {
+        "symbol": "DIACABS",
+        "date": "2026-09-01",
+        "entry_price": 347.3,
+        "stop_loss": 322.01,
+        "ai_summary": "Favorable technicals with RSI at 59.3 and ADX above 40 support a disciplined long entry near current levels. Set a mandatory stop loss at 322.01 and watch for volume follow-through.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "CARTRADE",
+        "date": "2026-09-01",
+        "entry_price": 2991.5,
+        "stop_loss": 2812.77,
+        "ai_summary": "Technical setup: RSI 57.5, ADX 39.6, Slope 0.043. Stop-loss at Rs 2812.77.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "FLUOROCHEM",
+        "date": "2026-09-01",
+        "entry_price": 4693.5,
+        "stop_loss": 4475.57,
+        "ai_summary": "Technical setup: RSI 58.2, ADX 39.4, Slope 0.042. Stop-loss at Rs 4475.57.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "MUNJALAU",
+        "date": "2026-09-01",
+        "entry_price": 115.79,
+        "stop_loss": 107.92,
+        "ai_summary": "Technical setup: RSI 60.0, ADX 38.9, Slope 0.042. Stop-loss at Rs 107.92.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "INDOBORAX",
+        "date": "2026-09-01",
+        "entry_price": 508.45,
+        "stop_loss": 465.34,
+        "ai_summary": "Technical setup: RSI 64.3, ADX 34.0, Slope 0.042. Stop-loss at Rs 465.34.",
+        "tv_signal": "STRONG_BUY"
+    },
+    {
+        "symbol": "UNIMECH",
+        "date": "2026-09-01",
+        "entry_price": 1490.0,
+        "stop_loss": 1398.81,
+        "ai_summary": "Technical setup: RSI 62.7, ADX 44.6, Slope 0.042. Stop-loss at Rs 1398.81.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "POLYPLEX",
+        "date": "2026-09-01",
+        "entry_price": 1182.6,
+        "stop_loss": 1126.62,
+        "ai_summary": "Technical setup: RSI 56.8, ADX 57.6, Slope 0.042. Stop-loss at Rs 1126.62.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "COSMOFIRST",
+        "date": "2026-09-01",
+        "entry_price": 929.2,
+        "stop_loss": 878.99,
+        "ai_summary": "Technical setup: RSI 54.9, ADX 26.3, Slope 0.042. Stop-loss at Rs 878.99.",
+        "tv_signal": "STRONG_BUY"
+    },
+    {
+        "symbol": "GARFIBRES",
+        "date": "2026-09-01",
+        "entry_price": 813.85,
+        "stop_loss": 768.66,
+        "ai_summary": "Technical setup: RSI 60.7, ADX 27.2, Slope 0.042. Stop-loss at Rs 768.66.",
+        "tv_signal": "STRONG_BUY"
+    },
+    {
+        "symbol": "CHEMBONDCH",
+        "date": "2026-09-01",
+        "entry_price": 256.53,
+        "stop_loss": 236.83,
+        "ai_summary": "Technical setup: RSI 49.4, ADX 31.6, Slope 0.042. Stop-loss at Rs 236.83.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "PREMIERPOL",
+        "date": "2026-09-01",
+        "entry_price": 90.58,
+        "stop_loss": 82.7,
+        "ai_summary": "Technical setup: RSI 63.7, ADX 40.5, Slope 0.042. Stop-loss at Rs 82.70.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "KMEW",
+        "date": "2026-09-01",
+        "entry_price": 2924.4,
+        "stop_loss": 2726.64,
+        "ai_summary": "Technical setup: RSI 64.9, ADX 36.5, Slope 0.042. Stop-loss at Rs 2726.64.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "PARAS",
+        "date": "2026-09-01",
+        "entry_price": 1432.9,
+        "stop_loss": 1330.75,
+        "ai_summary": "Technical setup: RSI 57.2, ADX 39.9, Slope 0.042. Stop-loss at Rs 1330.75.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "APCOTEXIND",
+        "date": "2026-09-01",
+        "entry_price": 646.3,
+        "stop_loss": 612.14,
+        "ai_summary": "Technical setup: RSI 63.5, ADX 43.9, Slope 0.042. Stop-loss at Rs 612.14.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "GRWRHITECH",
+        "date": "2026-09-01",
+        "entry_price": 7137.5,
+        "stop_loss": 6786.35,
+        "ai_summary": "Technical setup: RSI 52.5, ADX 25.7, Slope 0.042. Stop-loss at Rs 6786.35.",
+        "tv_signal": "STRONG_BUY"
+    },
+    {
+        "symbol": "SGMART",
+        "date": "2026-09-01",
+        "entry_price": 803.3,
+        "stop_loss": 753.9,
+        "ai_summary": "Technical setup: RSI 62.3, ADX 45.7, Slope 0.041. Stop-loss at Rs 753.90.",
+        "tv_signal": "STRONG_BUY"
+    },
+    {
+        "symbol": "WSTCSTPAPR",
+        "date": "2026-09-01",
+        "entry_price": 611.8,
+        "stop_loss": 576.85,
+        "ai_summary": "Technical setup: RSI 57.5, ADX 52.9, Slope 0.041. Stop-loss at Rs 576.85.",
+        "tv_signal": "STRONG_BUY"
+    },
+    {
+        "symbol": "BEPL",
+        "date": "2026-09-01",
+        "entry_price": 121.09,
+        "stop_loss": 113.84,
+        "ai_summary": "Technical setup: RSI 50.5, ADX 39.7, Slope 0.041. Stop-loss at Rs 113.84.",
+        "tv_signal": "STRONG_BUY"
+    },
+    {
+        "symbol": "JINDWORLD",
+        "date": "2026-09-01",
+        "entry_price": 38.31,
+        "stop_loss": 35.74,
+        "ai_summary": "Technical setup: RSI 61.0, ADX 34.1, Slope 0.040. Stop-loss at Rs 35.74.",
+        "tv_signal": "STRONG_BUY"
+    },
+    {
+        "symbol": "JGCHEM",
+        "date": "2026-09-01",
+        "entry_price": 633.3,
+        "stop_loss": 580.76,
+        "ai_summary": "Technical setup: RSI 62.0, ADX 49.3, Slope 0.040. Stop-loss at Rs 580.76.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "ASAHISONG",
+        "date": "2026-09-01",
+        "entry_price": 378.75,
+        "stop_loss": 350.7,
+        "ai_summary": "Technical setup: RSI 63.1, ADX 35.0, Slope 0.040. Stop-loss at Rs 350.70.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "PARADEEP",
+        "date": "2026-09-01",
+        "entry_price": 160.04,
+        "stop_loss": 151.8,
+        "ai_summary": "Technical setup: RSI 61.2, ADX 31.9, Slope 0.040. Stop-loss at Rs 151.80.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "TCPLPACK",
+        "date": "2026-09-01",
+        "entry_price": 3908.1,
+        "stop_loss": 3629.51,
+        "ai_summary": "Technical setup: RSI 58.1, ADX 38.3, Slope 0.040. Stop-loss at Rs 3629.51.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "STEELCAS",
+        "date": "2026-09-01",
+        "entry_price": 349.8,
+        "stop_loss": 329.07,
+        "ai_summary": "Technical setup: RSI 59.5, ADX 33.9, Slope 0.040. Stop-loss at Rs 329.07.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "LMW",
+        "date": "2026-09-01",
+        "entry_price": 18975.0,
+        "stop_loss": 18049.95,
+        "ai_summary": "Technical setup: RSI 61.2, ADX 53.2, Slope 0.039. Stop-loss at Rs 18049.95.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "RGL",
+        "date": "2026-09-01",
+        "entry_price": 135.22,
+        "stop_loss": 123.16,
+        "ai_summary": "Technical setup: RSI 56.7, ADX 33.2, Slope 0.039. Stop-loss at Rs 123.16.",
+        "tv_signal": "STRONG_BUY"
+    },
+    {
+        "symbol": "HITECHCORP",
+        "date": "2026-09-01",
+        "entry_price": 334.6,
+        "stop_loss": 322.44,
+        "ai_summary": "Technical setup: RSI 64.4, ADX 37.9, Slope 0.039. Stop-loss at Rs 322.44.",
+        "tv_signal": "BUY"
     }
 ]

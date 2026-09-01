@@ -619,5 +619,104 @@
     "sector": "Industrials",
     "fetched_at": "2026-08-31T08:53:56.105571",
     "status": "OK"
+  },
+  "PREMIERPOL": {
+    "eps": 3.34,
+    "revenue_growth": 0.344,
+    "debt_to_equity": 16.692,
+    "market_cap": 9576604672,
+    "sector": "Basic Materials",
+    "fetched_at": "2026-09-01T08:00:10.870891",
+    "status": "OK"
+  },
+  "KMEW": {
+    "eps": 49.75,
+    "revenue_growth": 1.381,
+    "debt_to_equity": 38.764,
+    "market_cap": 71886118912,
+    "sector": "Industrials",
+    "fetched_at": "2026-09-01T08:00:11.290987",
+    "status": "OK"
+  },
+  "ASAHISONG": {
+    "eps": 29.56,
+    "revenue_growth": 0.26,
+    "debt_to_equity": 48.076,
+    "market_cap": 4467372544,
+    "sector": "Basic Materials",
+    "fetched_at": "2026-09-01T08:00:11.709698",
+    "status": "OK"
+  },
+  "TITAN": {
+    "eps": 64.29,
+    "revenue_growth": 0.293,
+    "debt_to_equity": 195.001,
+    "market_cap": 4477378101248,
+    "sector": "Consumer Cyclical",
+    "fetched_at": "2026-09-01T08:00:12.195233",
+    "status": "OK"
+  },
+  "PARADEEP": {
+    "eps": 10.32,
+    "revenue_growth": 0.631,
+    "debt_to_equity": 101.822,
+    "market_cap": 165727059968,
+    "sector": "Basic Materials",
+    "fetched_at": "2026-09-01T08:00:12.612266",
+    "status": "OK"
+  },
+  "TCPLPACK": {
+    "eps": 126.88,
+    "revenue_growth": 0.161,
+    "debt_to_equity": 88.192,
+    "market_cap": 35172159488,
+    "sector": "Consumer Cyclical",
+    "fetched_at": "2026-09-01T08:00:13.031702",
+    "status": "OK"
+  },
+  "STEELCAS": {
+    "eps": 8.97,
+    "revenue_growth": 0.17,
+    "debt_to_equity": null,
+    "market_cap": 35000020992,
+    "sector": "Basic Materials",
+    "fetched_at": "2026-09-01T08:00:13.449029",
+    "status": "OK"
+  },
+  "LMW": {
+    "eps": 162.55,
+    "revenue_growth": 0.24,
+    "debt_to_equity": null,
+    "market_cap": 204141445120,
+    "sector": "Industrials",
+    "fetched_at": "2026-09-01T08:00:13.901928",
+    "status": "OK"
+  },
+  "RGL": {
+    "eps": 10.18,
+    "revenue_growth": 0.472,
+    "debt_to_equity": 41.552,
+    "market_cap": 14891594752,
+    "sector": "Consumer Cyclical",
+    "fetched_at": "2026-09-01T08:00:14.373766",
+    "status": "OK"
+  },
+  "GNA": {
+    "eps": 30.83,
+    "revenue_growth": null,
+    "debt_to_equity": null,
+    "market_cap": 22985150464,
+    "sector": "Consumer Cyclical",
+    "fetched_at": "2026-09-01T08:00:14.802455",
+    "status": "OK"
+  },
+  "HITECHCORP": {
+    "eps": 10.22,
+    "revenue_growth": 0.368,
+    "debt_to_equity": 48.253,
+    "market_cap": 5741836288,
+    "sector": "Consumer Cyclical",
+    "fetched_at": "2026-09-01T08:00:15.217664",
+    "status": "OK"
   }
 }
