@@ -1262,5 +1262,45 @@
         "stop_loss": 21981.36,
         "ai_summary": "Technical setup: RSI 60.7, ADX 48.3, Slope 0.035. Stop-loss at Rs 21981.36.",
         "tv_signal": "BUY"
+    },
+    {
+        "symbol": "IIFL",
+        "date": "2026-09-01",
+        "entry_price": 646.75,
+        "stop_loss": 609.97,
+        "ai_summary": "IIFL remains in a strong trending phase with an ADX of 41.7 and stable RSI momentum favoring entry around 646.75. Ensure downside risk is capped with a stop-loss at 609.97 while waiting for volume expansion.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "IDFCFIRSTB",
+        "date": "2026-09-01",
+        "entry_price": 85.97,
+        "stop_loss": 83.57,
+        "ai_summary": "Moderate momentum and a favorable buy signal offer a low-risk entry point for a steady move higher. Maintain a strict stop loss at 83.57 to protect capital against sudden pullbacks due to low volume confirmation.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "REDINGTON",
+        "date": "2026-09-01",
+        "entry_price": 357.75,
+        "stop_loss": 335.72,
+        "ai_summary": "Technical setup: RSI 62.2, ADX 44.1, Slope 0.036. Stop-loss at Rs 335.72.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "SENORES",
+        "date": "2026-09-01",
+        "entry_price": 1432.8,
+        "stop_loss": 1345.89,
+        "ai_summary": "Technical setup: RSI 47.9, ADX 26.1, Slope 0.036. Stop-loss at Rs 1345.89.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "HDFCSML250",
+        "date": "2026-09-01",
+        "entry_price": 185.36,
+        "stop_loss": 181.55,
+        "ai_summary": "Technical setup: RSI 56.4, ADX 27.2, Slope 0.036. Stop-loss at Rs 181.55.",
+        "tv_signal": "BUY"
     }
 ]
