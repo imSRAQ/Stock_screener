@@ -1710,5 +1710,29 @@
         "stop_loss": 46878.24,
         "ai_summary": "Technical setup: RSI 64.7, ADX 49.8, Slope 0.035. Stop-loss at Rs 46878.24.",
         "tv_signal": "BUY"
+    },
+    {
+        "symbol": "POLYPLEX",
+        "date": "2026-09-02",
+        "entry_price": 1187.7,
+        "stop_loss": 1132.62,
+        "ai_summary": "Technical setup: RSI 57.6, ADX 56.9, Slope 0.042. Stop-loss at Rs 1132.62.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "HNDFDS",
+        "date": "2026-09-02",
+        "entry_price": 644.1,
+        "stop_loss": 613.64,
+        "ai_summary": "Technical setup: RSI 63.2, ADX 39.5, Slope 0.042. Stop-loss at Rs 613.64.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "BLUESTONE",
+        "date": "2026-09-02",
+        "entry_price": 813.25,
+        "stop_loss": 752.8,
+        "ai_summary": "Technical setup: RSI 54.7, ADX 44.9, Slope 0.042. Stop-loss at Rs 752.80.",
+        "tv_signal": "BUY"
     }
 ]
