@@ -718,5 +718,77 @@
     "sector": "Consumer Cyclical",
     "fetched_at": "2026-09-01T08:00:15.217664",
     "status": "OK"
+  },
+  "NRL": {
+    "eps": 2.47,
+    "revenue_growth": 0.556,
+    "debt_to_equity": 22.74,
+    "market_cap": 8291732480,
+    "sector": "Industrials",
+    "fetched_at": "2026-09-02T07:19:45.812189",
+    "status": "OK"
+  },
+  "NYKAA": {
+    "eps": 0.88,
+    "revenue_growth": 0.291,
+    "debt_to_equity": 82.829,
+    "market_cap": 957513072640,
+    "sector": "Consumer Cyclical",
+    "fetched_at": "2026-09-02T07:19:46.226944",
+    "status": "OK"
+  },
+  "BOSCHLTD": {
+    "eps": 800.0,
+    "revenue_growth": 0.22,
+    "debt_to_equity": 0.8,
+    "market_cap": null,
+    "sector": "Consumer Cyclical",
+    "fetched_at": "2026-09-02T07:19:46.648736",
+    "status": "OK"
+  },
+  "NILKAMAL": {
+    "eps": 83.46,
+    "revenue_growth": 0.08,
+    "debt_to_equity": 26.499,
+    "market_cap": 30527014912,
+    "sector": "Consumer Cyclical",
+    "fetched_at": "2026-09-02T07:19:47.065744",
+    "status": "OK"
+  },
+  "KALYANKJIL": {
+    "eps": 13.24,
+    "revenue_growth": 0.457,
+    "debt_to_equity": 96.966,
+    "market_cap": 578237300736,
+    "sector": "Consumer Cyclical",
+    "fetched_at": "2026-09-02T07:19:47.485865",
+    "status": "OK"
+  },
+  "UCAL": {
+    "eps": -9.71,
+    "revenue_growth": 0.044,
+    "debt_to_equity": 56.888,
+    "market_cap": 3291613184,
+    "sector": "Consumer Cyclical",
+    "fetched_at": "2026-09-02T07:19:47.936827",
+    "status": "OK"
+  },
+  "ETHOSLTD": {
+    "eps": 38.84,
+    "revenue_growth": 0.333,
+    "debt_to_equity": 19.366,
+    "market_cap": 75914248192,
+    "sector": "Consumer Cyclical",
+    "fetched_at": "2026-09-02T07:19:48.352323",
+    "status": "OK"
+  },
+  "MACPOWER": {
+    "eps": 33.82,
+    "revenue_growth": 0.561,
+    "debt_to_equity": 0.389,
+    "market_cap": 18817824768,
+    "sector": "Industrials",
+    "fetched_at": "2026-09-02T07:19:48.769023",
+    "status": "OK"
   }
 }
