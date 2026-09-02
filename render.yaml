@@ -1,0 +1,16 @@
+services:
+  - type: worker
+    name: nse-telegram-bot
+    runtime: python
+    repo: https://github.com/imSRAQ/Stock_screener
+    buildCommand: pip install -r requirements.txt
+    startCommand: python stocks_monitoring_and_notifying/bot_worker.py
+    envVars:
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false        # you will paste this manually in Render dashboard
+      - key: TELEGRAM_CHAT_ID
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GITHUB_TOKEN
+        sync: false        # Personal Access Token (repo scope)

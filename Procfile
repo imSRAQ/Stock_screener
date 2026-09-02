@@ -1,0 +1,1 @@
+worker: python stocks_monitoring_and_notifying/bot_worker.py
