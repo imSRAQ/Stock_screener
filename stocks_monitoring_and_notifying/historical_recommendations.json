@@ -1670,5 +1670,45 @@
         "stop_loss": 624.13,
         "ai_summary": "Technical setup: RSI 63.7, ADX 28.1, Slope 0.035. Stop-loss at Rs 624.13.",
         "tv_signal": "BUY"
+    },
+    {
+        "symbol": "LAURUSLABS",
+        "date": "2026-09-02",
+        "entry_price": 1861.6,
+        "stop_loss": 1790.69,
+        "ai_summary": "Favorable long setup backed by strong trend strength and positive technical signals makes 1861.6 an attractive entry with a stop-loss at 1790.69. Exercise caution and confirm order book depth given the flat volume ratio.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "RADICO",
+        "date": "2026-09-02",
+        "entry_price": 4474.3,
+        "stop_loss": 4325.38,
+        "ai_summary": "BUY signal with neutral RSI (48.7) and strong ADX (46.3) suggests an emerging uptrend; set stop loss at 4325.38.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "INDIGOPNTS",
+        "date": "2026-09-02",
+        "entry_price": 1172.4,
+        "stop_loss": 1115.97,
+        "ai_summary": "AI summary unavailable (all providers failed or exhausted rate limits).",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "PGIL",
+        "date": "2026-09-02",
+        "entry_price": 2348.0,
+        "stop_loss": 2208.19,
+        "ai_summary": "Technical setup: RSI 54.9, ADX 39.7, Slope 0.036. Stop-loss at Rs 2208.19.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "BOSCHLTD",
+        "date": "2026-09-02",
+        "entry_price": 48550.0,
+        "stop_loss": 46878.24,
+        "ai_summary": "Technical setup: RSI 64.7, ADX 49.8, Slope 0.035. Stop-loss at Rs 46878.24.",
+        "tv_signal": "BUY"
     }
 ]
