@@ -157,6 +157,7 @@ class Scheduler:
         # --- NEW DASHBOARD & HISTORY GENERATOR ---
         from history_manager import HistoryManager
         from dashboard_generator import DashboardGenerator
+        from paper_trader import PaperTrader
         
         history_mgr = HistoryManager()
         history_mgr.record_entries(final_entries)
@@ -165,6 +166,27 @@ class Scheduler:
         # Since docs is now inside stocks_monitoring_and_notifying, we point to "docs"
         dashboard_gen = DashboardGenerator(docs_dir="docs")
         dashboard_gen.generate(final_entries, final_exits, market_health, analytics, self.portfolio.get_portfolio())
+        
+        # --- EXECUTE VIRTUAL TRADES ---
+        # Fetch current prices for active virtual positions to process trailing stops
+        pt = PaperTrader()
+        v_positions = pt.get_portfolio()
+        current_prices = {}
+        if v_positions:
+            fetcher = DataFetcher()
+            # Fetch latest data for virtual positions (needs just a few days for current price/ATR)
+            v_data = fetcher.fetch_all_universe(period_days=20, symbols=list(v_positions.keys()))
+            for sym, df in v_data.items():
+                if not df.empty:
+                    close = df['Close'].iloc[-1]
+                    # calc simple ATR
+                    high = df['High'].iloc[-1]
+                    low = df['Low'].iloc[-1]
+                    prev_close = df['Close'].iloc[-2] if len(df) > 1 else close
+                    tr = max(high - low, abs(high - prev_close), abs(low - prev_close))
+                    current_prices[sym] = {"price": close, "atr": tr}
+
+        pt.execute_trades(final_entries, final_exits, current_prices, self.notifier)
         
         if is_weekly:
             self.notifier.send_weekly_new_entries(final_entries, market_health)

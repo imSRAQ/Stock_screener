@@ -190,7 +190,11 @@ class TelegramNotifier:
             "/chart INFY\n\n"
             "<b>System Controls:</b>\n"
             "/status — View market health & config\n"
-            "/hourly on|off — Toggle hourly scans\n"
+            "/hourly on|off — Toggle hourly scans\n\n"
+            "<b>🎮 Virtual Auto-Trader:</b>\n"
+            "/vportfolio — View virtual holdings\n"
+            "/vhistory — View recent virtual trades\n"
+            "/vreset — Reset virtual balance to ₹500,000\n\n"
             "/help — Show this menu again"
         )
         await update.message.reply_text(welcome_msg, parse_mode='HTML')
@@ -360,6 +364,58 @@ class TelegramNotifier:
         except Exception as e:
             await loading_msg.edit_text(f"❌ Error generating chart: {str(e)}")
 
+    async def _cmd_vportfolio(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        from paper_trader import PaperTrader
+        pt = PaperTrader()
+        positions = pt.get_portfolio()
+        cash = pt.get_cash()
+        
+        msg = f"<b>🎮 VIRTUAL PORTFOLIO</b>\nCash Balance: ₹{cash:,.2f}\n\n"
+        if not positions:
+            msg += "No active virtual positions."
+        else:
+            for sym, data in positions.items():
+                entry = data['entry_price']
+                qty = data['quantity']
+                tsl = data['trailing_sl']
+                tgt = data['target_price']
+                partial = " (50% Sold)" if data.get('partial_taken') else ""
+                
+                msg += f"<b>{sym}</b>{partial}\n"
+                msg += f"Qty: {qty} | Entry: ₹{entry:.2f}\n"
+                msg += f"SL: ₹{tsl:.2f} | Tgt: ₹{tgt:.2f}\n\n"
+                
+        await update.message.reply_text(msg, parse_mode='HTML')
+
+    async def _cmd_vhistory(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        from paper_trader import PaperTrader
+        pt = PaperTrader()
+        history = pt.state.get("trade_history", [])
+        
+        if not history:
+            await update.message.reply_text("No virtual trades executed yet.")
+            return
+            
+        msg = "<b>📜 RECENT VIRTUAL TRADES</b>\n\n"
+        for t in history[-10:]: # Show last 10
+            emoji = "🟢" if t.get("pnl", 0) > 0 else "🔴"
+            msg += f"<b>{t['symbol']}</b> - {t['type']}\n"
+            msg += f"Exit: ₹{t['exit_price']:.2f} | PnL: {emoji} ₹{t.get('pnl',0):.2f}\n"
+            msg += f"<i>{t['date']}</i>\n\n"
+            
+        await update.message.reply_text(msg, parse_mode='HTML')
+
+    async def _cmd_vreset(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        from paper_trader import PaperTrader
+        pt = PaperTrader()
+        pt.state = {
+            "cash_balance": 500000.0,
+            "positions": {},
+            "trade_history": []
+        }
+        pt.save()
+        await update.message.reply_text("✅ Virtual Portfolio has been reset to ₹500,000.")
+
     def _run_bot_loop(self):
         """Runs the bot polling in a separate thread."""
         try:
@@ -380,6 +436,9 @@ class TelegramNotifier:
             self._bot_app.add_handler(CommandHandler("exit", self._cmd_exit))
             self._bot_app.add_handler(CommandHandler("portfolio", self._cmd_portfolio))
             self._bot_app.add_handler(CommandHandler("chart", self._cmd_chart))
+            self._bot_app.add_handler(CommandHandler("vportfolio", self._cmd_vportfolio))
+            self._bot_app.add_handler(CommandHandler("vhistory", self._cmd_vhistory))
+            self._bot_app.add_handler(CommandHandler("vreset", self._cmd_vreset))
             
             self._bot_app.run_polling(drop_pending_updates=True)
         except Exception as e:
