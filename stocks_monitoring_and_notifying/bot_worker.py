@@ -2,41 +2,59 @@
 bot_worker.py
 -------------
 Standalone 24/7 Telegram bot listener.
-Deploy this on Render.com as a Background Worker.
+Deploy this on Render.com as a FREE Web Service.
 
-It syncs portfolio.json and watchlist.json from GitHub on startup,
-then runs the bot polling loop forever so the bot responds to
-/chart, /portfolio, /entry, /exit, /watch etc. at any time of day.
+It runs a tiny keep-alive web server (so Render's free tier doesn't sleep)
+alongside the Telegram polling loop. Pair with UptimeRobot (free) to ping
+the URL every 5 minutes and the bot stays awake 24/7 for $0.
 """
 
 import os
 import sys
 import subprocess
+import threading
+from http.server import HTTPServer, BaseHTTPRequestHandler
 
 # ── Ensure local imports work when deployed ───────────────────────────────────
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
+REPO_ROOT = os.path.dirname(HERE)
 
-REPO_ROOT = os.path.dirname(HERE)  # one level above stocks_monitoring_and_notifying/
+
+# ── Keep-alive web server ─────────────────────────────────────────────────────
+class _PingHandler(BaseHTTPRequestHandler):
+    """Tiny HTTP handler so Render's health checks and UptimeRobot pings succeed."""
+    def do_GET(self):
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write(b"NSE Bot is alive and listening on Telegram!")
+
+    def log_message(self, fmt, *args):
+        pass  # suppress noisy access logs
 
 
+def _start_keep_alive():
+    port = int(os.environ.get("PORT", 10000))
+    server = HTTPServer(("0.0.0.0", port), _PingHandler)
+    print(f"[info] Keep-alive web server listening on port {port}")
+    server.serve_forever()
+
+
+# ── Git helpers ───────────────────────────────────────────────────────────────
 def _configure_git():
-    """Configure git with GITHUB_TOKEN so the bot can pull/push data files."""
     token = os.environ.get("GITHUB_TOKEN", "")
     if not token:
-        print("[warn] GITHUB_TOKEN not set — bot cannot sync data with GitHub.")
+        print("[warn] GITHUB_TOKEN not set — portfolio changes won't sync to GitHub.")
         return
     try:
         result = subprocess.run(
             ["git", "remote", "get-url", "origin"],
             cwd=REPO_ROOT, capture_output=True, text=True
         )
-        remote_url = result.stdout.strip()
-        if "github.com" in remote_url and "x-access-token" not in remote_url:
-            authed = remote_url.replace(
-                "https://github.com/",
-                f"https://x-access-token:{token}@github.com/"
-            )
+        remote = result.stdout.strip()
+        if "github.com" in remote and "x-access-token" not in remote:
+            authed = remote.replace("https://github.com/",
+                                    f"https://x-access-token:{token}@github.com/")
             subprocess.run(["git", "remote", "set-url", "origin", authed],
                            cwd=REPO_ROOT, check=True, capture_output=True)
         subprocess.run(["git", "config", "user.email", "bot@render.com"],
@@ -49,21 +67,23 @@ def _configure_git():
 
 
 def _pull_latest():
-    """Pull latest portfolio.json / watchlist.json committed by GitHub Actions."""
     try:
-        result = subprocess.run(
-            ["git", "pull", "--rebase"],
-            cwd=REPO_ROOT, capture_output=True, text=True, timeout=30
-        )
-        print(f"[info] Git pull: {result.stdout.strip() or 'already up to date'}")
+        r = subprocess.run(["git", "pull", "--rebase"],
+                           cwd=REPO_ROOT, capture_output=True, text=True, timeout=30)
+        print(f"[info] Git pull: {r.stdout.strip() or 'already up to date'}")
     except Exception as exc:
         print(f"[warn] Git pull failed: {exc}")
 
 
+# ── Main ──────────────────────────────────────────────────────────────────────
 def main():
     print("[info] NSE Bot Worker starting up...")
+
     _configure_git()
     _pull_latest()
+
+    # Start keep-alive server in background so Render's free tier stays awake
+    threading.Thread(target=_start_keep_alive, daemon=True).start()
 
     from config_manager import ConfigManager
     from watchlist_manager import WatchlistManager
@@ -86,8 +106,7 @@ def main():
         sys.exit(1)
 
     print("[info] All systems go. Telegram bot is listening 24/7...")
-    # Blocks forever — Render will auto-restart if it ever crashes
-    notifier._run_bot_loop()
+    notifier._run_bot_loop()  # blocks forever
 
 
 if __name__ == "__main__":
