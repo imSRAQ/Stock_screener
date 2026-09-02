@@ -1510,5 +1510,165 @@
         "stop_loss": 1734.9,
         "ai_summary": "Technical setup: RSI 61.0, ADX 56.6, Slope 0.039. Stop-loss at Rs 1734.90.",
         "tv_signal": "BUY"
+    },
+    {
+        "symbol": "RUBICON",
+        "date": "2026-09-02",
+        "entry_price": 1822.2,
+        "stop_loss": 1703.06,
+        "ai_summary": "Bullish momentum is strong with RSI at 64.9 alongside a solid trend ADX of 32.0 and an active buy signal. Initiate long positions at current levels, maintaining a stop loss at 1703.06 to protect capital.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "TASTYBITE",
+        "date": "2026-09-02",
+        "entry_price": 9946.0,
+        "stop_loss": 9367.32,
+        "ai_summary": "A bullish setup is supported by a strong buy signal, a healthy RSI of 55.9, and a robust ADX trend of 45.6. Enter long positions on minor dips with a defined stop loss at 9367.32 to target higher levels.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "VADILALIND",
+        "date": "2026-09-02",
+        "entry_price": 7757.0,
+        "stop_loss": 7333.38,
+        "ai_summary": "Strong bullish momentum makes this a solid entry candidate, backed by a buy signal, an upbeat RSI of 63.8, and high ADX trend strength. Enter at current levels for a momentum continuation trade, anchoring risk with a stop loss at 7333.38.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "IDFCFIRSTB",
+        "date": "2026-09-02",
+        "entry_price": 84.9,
+        "stop_loss": 82.47,
+        "ai_summary": "A solid BUY signal backed by an ADX above 30 offers a favorable low-risk swing entry near current levels. Initiate long positions with a tight stop loss at 82.47 to capitalize on the building upward momentum.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "ESAFSFB",
+        "date": "2026-09-02",
+        "entry_price": 41.48,
+        "stop_loss": 38.21,
+        "ai_summary": "The stock exhibits a healthy BUY signal supported by a solid ADX trend reading of 32.3 and neutral RSI. Look for long entries aiming for upside targets while maintaining a disciplined stop loss at 38.21.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "GANDHAR",
+        "date": "2026-09-02",
+        "entry_price": 261.8,
+        "stop_loss": 246.54,
+        "ai_summary": "Technical setup: RSI 64.6, ADX 34.3, Slope 0.036. Stop-loss at Rs 246.54.",
+        "tv_signal": "STRONG_BUY"
+    },
+    {
+        "symbol": "MOHEALTH",
+        "date": "2026-09-02",
+        "entry_price": 51.81,
+        "stop_loss": 50.08,
+        "ai_summary": "Technical setup: RSI 53.6, ADX 27.6, Slope 0.036. Stop-loss at Rs 50.08.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "RISHABH",
+        "date": "2026-09-02",
+        "entry_price": 695.7,
+        "stop_loss": 645.91,
+        "ai_summary": "Technical setup: RSI 58.1, ADX 32.9, Slope 0.036. Stop-loss at Rs 645.91.",
+        "tv_signal": "STRONG_BUY"
+    },
+    {
+        "symbol": "REDINGTON",
+        "date": "2026-09-02",
+        "entry_price": 349.6,
+        "stop_loss": 327.89,
+        "ai_summary": "Technical setup: RSI 57.2, ADX 43.4, Slope 0.036. Stop-loss at Rs 327.89.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "FEDERALBNK",
+        "date": "2026-09-02",
+        "entry_price": 349.25,
+        "stop_loss": 338.08,
+        "ai_summary": "Technical setup: RSI 48.8, ADX 30.5, Slope 0.036. Stop-loss at Rs 338.08.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "GLAND",
+        "date": "2026-09-02",
+        "entry_price": 2875.0,
+        "stop_loss": 2750.45,
+        "ai_summary": "Technical setup: RSI 62.8, ADX 41.7, Slope 0.036. Stop-loss at Rs 2750.45.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "TARSONS",
+        "date": "2026-09-02",
+        "entry_price": 344.1,
+        "stop_loss": 317.99,
+        "ai_summary": "Technical setup: RSI 58.2, ADX 36.1, Slope 0.036. Stop-loss at Rs 317.99.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "AIMTRON",
+        "date": "2026-09-02",
+        "entry_price": 1602.35,
+        "stop_loss": 1505.0,
+        "ai_summary": "Technical setup: RSI 51.8, ADX 31.9, Slope 0.036. Stop-loss at Rs 1505.00.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "PANACHE",
+        "date": "2026-09-02",
+        "entry_price": 519.4,
+        "stop_loss": 484.07,
+        "ai_summary": "Technical setup: RSI 58.4, ADX 35.3, Slope 0.036. Stop-loss at Rs 484.07.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "NAUKRI",
+        "date": "2026-09-02",
+        "entry_price": 1356.0,
+        "stop_loss": 1300.04,
+        "ai_summary": "Technical setup: RSI 60.6, ADX 38.4, Slope 0.036. Stop-loss at Rs 1300.04.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "MARKSANS",
+        "date": "2026-09-02",
+        "entry_price": 322.4,
+        "stop_loss": 302.7,
+        "ai_summary": "Technical setup: RSI 61.4, ADX 41.2, Slope 0.035. Stop-loss at Rs 302.70.",
+        "tv_signal": "STRONG_BUY"
+    },
+    {
+        "symbol": "UNIMECH",
+        "date": "2026-09-02",
+        "entry_price": 1475.1,
+        "stop_loss": 1386.61,
+        "ai_summary": "Technical setup: RSI 59.8, ADX 44.3, Slope 0.035. Stop-loss at Rs 1386.61.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "NEULANDLAB",
+        "date": "2026-09-02",
+        "entry_price": 23025.0,
+        "stop_loss": 22018.94,
+        "ai_summary": "Technical setup: RSI 60.8, ADX 47.0, Slope 0.035. Stop-loss at Rs 22018.94.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "BLUSPRING",
+        "date": "2026-09-02",
+        "entry_price": 121.47,
+        "stop_loss": 110.06,
+        "ai_summary": "Technical setup: RSI 52.2, ADX 28.3, Slope 0.035. Stop-loss at Rs 110.06.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "VIMTALABS",
+        "date": "2026-09-02",
+        "entry_price": 661.75,
+        "stop_loss": 624.13,
+        "ai_summary": "Technical setup: RSI 63.7, ADX 28.1, Slope 0.035. Stop-loss at Rs 624.13.",
+        "tv_signal": "BUY"
     }
 ]
