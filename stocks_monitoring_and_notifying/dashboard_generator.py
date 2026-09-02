@@ -83,6 +83,7 @@ class DashboardGenerator:
             <div class="flex gap-2 items-center bg-slate-800 p-1 rounded-lg">
                 <span class="px-3 text-sm text-slate-400">Sort by:</span>
                 <select id="sortSelect" class="bg-slate-700 text-white text-sm rounded px-3 py-2 outline-none cursor-pointer border border-slate-600 focus:border-blue-500 transition-colors" onchange="sortCards()">
+                    <option value="score_desc">⭐ Highly Recommended (Best First)</option>
                     <option value="adx_desc">Trend Strength (ADX High to Low)</option>
                     <option value="rsi_desc">Momentum (RSI High to Low)</option>
                     <option value="rsi_asc">Momentum (RSI Low to High)</option>
@@ -216,9 +217,22 @@ class DashboardGenerator:
             sector_boost = d.get('sector_boost', False)
             sector_badge = f'<span class="px-2 py-1 text-xs font-bold rounded border bg-orange-500/20 text-orange-400 border-orange-500/30 shadow-[0_0_10px_rgba(249,115,22,0.3)] ml-2" title="{sector}">🔥 HOT SECTOR</span>' if sector_boost else ''
 
+            # --- Composite buy score (0-120) ---
+            # TV signal strength: STRONG_BUY is the gold standard
+            tv_weight = {"STRONG_BUY": 40, "BUY": 25, "BUY_WEAK": 12, "NEUTRAL": 0}.get(tv_rec, 0)
+            # ADX: strong trend > 25, capped at 50 for scoring
+            adx_score = min(float(adx), 50) * 0.6           # max 30 pts
+            # RSI: sweet spot is 45-65 — penalise overbought/oversold
+            rsi_score = max(0.0, 20.0 - abs(float(rsi) - 55.0) * 0.8)  # max 20 pts
+            # Slope: momentum proxy, capped
+            slope_score = min(float(slope) * 200, 20)        # max 20 pts
+            # Hot sector bonus
+            sector_score = 10 if sector_boost else 0         # max 10 pts
+            buy_score = tv_weight + adx_score + rsi_score + slope_score + sector_score
+
             html += f"""
             <div class="stock-card glass rounded-xl p-5 flex flex-col card-hover border-t-4 {'border-t-emerald-500' if is_entry else 'border-t-red-500'}" 
-                 data-rsi="{rsi}" data-adx="{adx}" data-price="{price}" data-slope="{slope}" data-pnl="0" data-date="0">
+                 data-rsi="{rsi}" data-adx="{adx}" data-price="{price}" data-slope="{slope}" data-pnl="0" data-date="0" data-score="{buy_score:.2f}">
                 <div class="flex justify-between items-start mb-3">
                     <div>
                         <h3 class="text-xl font-bold text-white tracking-wide">{sym}{sector_badge}</h3>
