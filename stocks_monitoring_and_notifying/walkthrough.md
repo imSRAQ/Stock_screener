@@ -8,7 +8,7 @@
 
 ```mermaid
 graph TD
-    A["GitHub Actions<br/>(hourly_scan.yml)"] --> B["Scheduler<br/>(scheduler.py)"]
+    A["Render.com<br/>(bot_worker.py with APScheduler)"] --> B["Scheduler<br/>(scheduler.py)"]
     B --> C["DataFetcher<br/>(data_fetcher.py)"]
     B --> D["UptrendAnalyzer<br/>(uptrend_analyzer.py)"]
     B --> E["FundamentalFilter<br/>(fundamental_filter.py)"]
@@ -27,7 +27,7 @@ graph TD
     H -->|"Virtual Executions"| J["TelegramNotifier<br/>(telegram_notifier.py)"]
     I -->|"Generates HTML"| K["GitHub Pages"]
     
-    L["Render.com<br/>(bot_worker.py)"] <-->|"24/7 Commands"| J
+    A <-->|"24/7 Commands"| J
 ```
 
 *All Python files live under* `stocks_monitoring_and_notifying/` *inside your repository.*
@@ -48,7 +48,7 @@ graph TD
 | **DashboardGenerator** | `dashboard_generator.py` | Generates a static HTML dashboard from the JSON snapshot outputs, which is then served via GitHub Pages for easy visual review. |
 | **TelegramNotifier** | `telegram_notifier.py` | Formats AI summaries, virtual trade executions, and market health into Markdown messages and sends them via the Telegram Bot API. |
 | **Scheduler** | `scheduler.py` | Orchestrates everything. Parses command-line flags (`--full`, `--hourly`, `--weekly`) and calls the modules in the correct order. |
-| **BotWorker** | `bot_worker.py` | A lightweight HTTP keep-alive server that runs the Telegram polling loop. Meant to be deployed on Render.com for 24/7 command access. |
+| **BotWorker** | `bot_worker.py` | A lightweight HTTP keep-alive server that runs the Telegram polling loop **AND** the APScheduler for automated scans. Meant to be deployed on Render.com for 24/7 operation. |
 
 ---
 
@@ -167,30 +167,33 @@ Here is exactly what happens when `python scheduler.py --full` runs:
 7. **Virtual Trading** -- `PaperTrader` checks if any candidates meet the strict pullback criteria, executes trades, and manages exits in `virtual_portfolio.json`.
 8. **Dashboard Generation** -- `DashboardGenerator` builds the HTML dashboard.
 9. **Telegram Notification** -- `TelegramNotifier` sends the alerts.
-10. **Git Commit (GitHub Action only)** -- The workflow forcefully commits JSON databases so the cache persists across cloud runs.
+10. **Git Commit** -- `bot_worker.py` forcefully commits JSON databases and HTML so the state persists across cloud runs.
 
 ---
 
-## 8. GitHub Actions -- Cloud Automation
+## 8. The APScheduler (Cloud Automation via Render.com)
 
-The file `.github/workflows/hourly_scan.yml` defines the scheduled jobs:
+We use **APScheduler** inside `bot_worker.py` on Render.com as the core driver of the entire system. It completely respects the timeframes set in your `config.json`.
 
-| Cron (UTC) | Mode | What runs | IST equivalent |
-|------------|------|-----------|----------------|
-| `30 2 * * 1-5` | `--full` | Full daily scan | 8:00 AM IST |
-| `30 3-10 * * 1-5` | `--hourly` | Hourly refresh | 9 AM - 4 PM IST |
+| Schedule Type | Config Key | What runs |
+|---------------|------------|-----------|
+| **Full Scan** | `full_scan_time_ist` | Runs `--full` (e.g. at 08:00 IST) |
+| **Hourly Refresh** | `hourly_start_ist` to `hourly_end_ist` | Runs `--hourly` between these times (e.g. 10:00 to 16:00 IST) |
 
-### GitHub Secrets
-Your API keys must be added as **Secrets** (Settings > Secrets and variables > Actions):
+*(Note: The old `.github/workflows/hourly_scan.yml` is now disabled for automatic runs and can only be triggered manually via the GitHub UI.)*
+
+### Environment Variables
+Your API keys must be added as **Environment Variables** in your Render.com dashboard:
 - `TELEGRAM_BOT_TOKEN`
 - `TELEGRAM_CHAT_ID`
 - `GEMINI_API_KEY`
+- `GITHUB_TOKEN` (Required so Render can push updates back to your repo)
 
 ---
 
-## 9. The 24/7 Telegram Bot (Render.com)
+## 9. The 24/7 Telegram Bot
 
-GitHub Actions runs the heavy scans, but a free **Render.com Web Service** (`bot_worker.py`) keeps your Telegram Bot awake 24/7.
+Alongside scheduling the scans, `bot_worker.py` keeps your Telegram Bot awake 24/7.
 
 **Available Commands:**
 - `/start` or `/help` - Show menu

@@ -49,7 +49,7 @@ It feeds all the stock data and the latest news headlines into the AI, and the A
 
 ## 📱 How to set it up (For Beginners)
 
-This system runs automatically in the cloud using **GitHub Actions**. To set it up, you just need to give it your API keys (secure passwords) so it can access AI and message your Telegram.
+This system runs automatically in the cloud using a free **Render.com** Web Service. To set it up, you just need to give it your API keys (secure passwords) so it can access AI and message your Telegram.
 
 ### Step 1: Get a Telegram Bot Token
 1. Open Telegram on your phone and search for `BotFather`.
@@ -65,14 +65,15 @@ This system runs automatically in the cloud using **GitHub Actions**. To set it 
 1. Go to [console.groq.com/keys](https://console.groq.com/keys) (recommended) or Google AI Studio.
 2. Sign in with Google and click **Create API Key**. Save this key.
 
-### Step 4: Put the keys in GitHub
-1. Go to this repository on GitHub.com.
-2. Click **Settings** (top tab) -> **Secrets and variables** (left menu) -> **Actions**.
-3. Click **New repository secret**.
-4. Add three secrets exactly like this:
-   - Name: `TELEGRAM_BOT_TOKEN` | Secret: (paste your token from Step 1)
-   - Name: `TELEGRAM_CHAT_ID` | Secret: (paste your ID from Step 2)
-   - Name: `GROQ_API_KEY` | Secret: (paste your AI key from Step 3)
+### Step 4: Deploy to Render.com
+1. Go to [Render.com](https://render.com) and sign up.
+2. Create a new **Web Service** and connect it to your GitHub repository.
+3. Set the Build Command to `pip install -r requirements.txt` and the Start Command to `python stocks_monitoring_and_notifying/bot_worker.py`.
+4. In the Environment Variables section, add your secrets:
+   - `TELEGRAM_BOT_TOKEN`: (paste your token from Step 1)
+   - `TELEGRAM_CHAT_ID`: (paste your ID from Step 2)
+   - `GEMINI_API_KEY`: (paste your AI key from Step 3)
+   - `GITHUB_TOKEN`: (create a personal access token on GitHub and paste here so the bot can save its data)
 
 ### Step 5: You're Done!
 The system will now automatically run every Monday-Friday at 8:00 AM IST and send you the best stocks for the day!
