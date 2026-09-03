@@ -1,99 +1,141 @@
-# Institutional-Grade NSE Stock Screener & Auto-Trader 🚀
+# NSE Candlestick Shape Screener
 
-An end-to-end quantitative trading system for Indian Equities (NSE). It automatically scrapes data, filters for institutional uptrends, applies a smart pullback strategy, sizes risk dynamically, takes partial profits, hosts an AI dashboard, and communicates via a 24/7 Telegram bot.
+Finds Indian (NSE) stocks whose recent daily price/candle **shape** resembles
+a reference stock's uptrend pattern — for shortlisting candidates, not for
+trading signals.
 
-## 🌟 Key Features
+## What's included
 
-1. **6-Layer Quantitative Filter**
-   - Trend (SMA 50 > 200)
-   - Institutional Volume confirmation
-   - Momentum (RSI sweet-spot)
-   - Trend Strength (ADX > 25)
-   - Multi-timeframe alignment (Weekly trend)
-   - Sector momentum boost (Top 3 hot sectors get 1.2x rank boost)
+| File | Purpose |
+|---|---|
+| `screener/stock_similarity_screener.py` | Main script — run this on your own machine |
+| `screener/nse_screener_gui.py` | Desktop GUI for the screener (run this instead of the CLI script if you prefer a graphical interface) |
+| `screener/data_sources.py` | Pluggable data backends (yfinance + NSE Bhavcopy) and market-cap lookup |
+| `screener/similarity_engine.py` | Core matching logic (DTW shape comparison) |
+| `screener/nifty500_tickers.py` | Default candidate universe (see caveat below) |
+| `templates/dashboard.html` | Visual screener — open in any browser, load the JSON output |
+| `templates/interactive_dashboard.html` | Advanced interactive dashboard |
+| `output/sample_output.json` | Synthetic example (includes market cap) so the dashboard works before you run anything |
 
-2. **Automated Paper Trading Engine (`paper_trader.py`)**
-   - **Auto-Buys** when a stock hits a high Composite Buy Score during a pullback.
-   - **Strict 1% Risk Sizing:** Calculates position sizes so you never risk more than 1% of your account per trade.
-   - **1.5x R:R Target:** Automatically sells 50% when the target is hit to lock in profit.
-   - **Trailing Stops:** Trails the remaining 50% using ATR to capture maximum upside.
+## Setup (one time)
 
-3. **Google Gemini AI Summarizer**
-   - Processes technicals, fundamentals, and recent news.
-   - Writes a human-readable action plan for every top candidate.
-
-4. **Dynamic AI Dashboard (GitHub Pages)**
-   - Automatically builds a stunning static HTML dashboard every hour.
-   - Sorts candidates by a proprietary "Composite Buy Score".
-   - View at: `https://<your-username>.github.io/Stock_screener/stocks_monitoring_and_notifying/docs/`
-
-5. **24/7 Telegram Bot (Render.com + UptimeRobot)**
-   - Fully interactive remote control via Telegram.
-   - `/vportfolio` to view virtual trades.
-   - `/chart SYMBOL` to generate technical charts on the fly.
-   - Instantly notifies you of virtual executions (`🎮 VIRTUAL BUY`, `🎯 TARGET HIT`).
-
-6. **Fully Serverless (GitHub Actions)**
-   - No local server required.
-   - Scheduled hourly scans (9 AM - 4 PM IST) and full daily scans (8 AM IST).
-   - Graceful failover to `yfinance` if NSE blocks cloud IPs.
-
----
-
-## 🏗️ Architecture
-
-- `scheduler.py`: The brain that orchestrates the hourly/daily scans.
-- `uptrend_analyzer.py` & `sector_analysis.py`: The core quant filters.
-- `paper_trader.py`: The virtual algorithmic trading execution engine.
-- `dashboard_generator.py`: HTML generator for the GitHub Pages frontend.
-- `bot_worker.py`: Standalone Telegram listener hosted on Render.com.
-
----
-
-## 🚀 Setup Instructions
-
-### 1. Local Setup
 ```bash
-git clone https://github.com/imSRAQ/Stock_screener.git
-cd Stock_screener
-python -m venv .venv
-.venv\Scripts\activate  # Windows
 pip install -r requirements.txt
 ```
 
-### 2. Configuration (`config.json`)
-Create `stocks_monitoring_and_notifying/config.json` (This file is git-ignored for safety):
-```json
-{
-  "telegram_bot_token": "YOUR_TOKEN",
-  "telegram_chat_id": "YOUR_CHAT_ID",
-  "gemini_api_key": "YOUR_GEMINI_KEY",
-  "schedule": {
-    "hourly_enabled": true
-  },
-  "filters": {
-    "sma_short": 50,
-    "sma_long": 200,
-    "rsi_min": 40,
-    "rsi_max": 65,
-    "adx_min": 25,
-    "atr_stop_loss_multiplier": 1.5
-  }
-}
+No API key needed for either backend below.
+
+## Choosing a data source — ***NEW: now two options***
+
+| | `--source yfinance` (default) | `--source nse` (new) |
+|---|---|---|
+| What it is | Unofficial Yahoo Finance wrapper | NSE's own official daily Bhavcopy archive |
+| Access pattern | One request per ticker | One file per trading day, covers all stocks at once |
+| Best for | Quick runs, smaller watchlists | Large universes (e.g. full Nifty 500), wanting the primary official source |
+| Known risk | Can silently rate-limit or return gaps at scale | Server can reject scripted requests without browser-like headers (handled, but NSE could change this) |
+
+Both produce the exact same output format, so you can switch freely:
+
+```bash
+python -m screener.stock_similarity_screener --reference RELIANCE --source yfinance
+python -m screener.stock_similarity_screener --reference RELIANCE --source nse
 ```
 
-### 3. Telegram Bot 24/7 Hosting (Render.com)
-1. Create a **Free Web Service** on Render.com pointing to this repo.
-2. Build command: `pip install -r requirements.txt`
-3. Start command: `python stocks_monitoring_and_notifying/bot_worker.py`
-4. Add Environment Variables: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `GEMINI_API_KEY`, `GITHUB_TOKEN` (Personal Access Token).
-5. Set up a free ping on UptimeRobot for the Render URL to prevent sleeping.
+I also looked at **Alpha Vantage** as a third option but ruled it out for this
+use case — its free tier caps out at 25 requests/day, which isn't enough to
+scan a broad universe like Nifty 500 even once.
 
-### 4. GitHub Actions (Cloud Automation)
-Add `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, and `GEMINI_API_KEY` to your repository's **Secrets** (Settings > Secrets and variables > Actions). The `.github/workflows/hourly_scan.yml` will handle the rest!
+The `--source nse` backend caches each day's downloaded Bhavcopy file in
+`~/.nse_screener_cache/` so re-running the script (e.g. daily) doesn't
+re-download historical days you've already fetched — only the newest
+trading day needs fetching each time.
 
----
+## Running it
 
-## 📚 Detailed Documentation
-For a deep dive into the math, logic, and inner workings of every module, please read:
-[`stocks_monitoring_and_notifying/walkthrough.md`](stocks_monitoring_and_notifying/walkthrough.md)
+**Option 1: Using the Desktop GUI (Recommended)**
+```bash
+python -m screener.nse_screener_gui
+```
+This opens a graphical interface where you can set your reference stock, lookback window, data source, and other parameters, and then view the results directly.
+
+**Option 2: Using the Command Line**
+```bash
+# Basic: find stocks shaped like RELIANCE's last 60 days (uses yfinance by default)
+python -m screener.stock_similarity_screener --reference RELIANCE
+
+# Same, but using NSE's own official data instead of Yahoo Finance
+python -m screener.stock_similarity_screener --reference RELIANCE --source nse
+
+# Custom lookback window and stricter uptrend requirement
+python -m screener.stock_similarity_screener --reference TCS --lookback 30 --min-slope 0.0015
+
+# Use your own watchlist instead of the bundled Nifty 500 snapshot
+python -m screener.stock_similarity_screener --reference INFY --tickers-file data/my_watchlist.csv
+
+# Also fetch market capitalization for the reference + shortlisted matches
+python -m screener.stock_similarity_screener --reference RELIANCE --with-market-cap
+```
+
+This writes `output/screener_output.json`. Open `templates/dashboard.html` in your browser
+and click **Load JSON output** to view the ranked results visually — each
+row shows a mini overlay of the candidate's shape against your reference
+pattern, plus market cap if you used `--with-market-cap`.
+
+Re-run the script whenever you want fresh results (daily, weekly — your
+choice). For true daily automation, schedule it with cron / Task Scheduler
+to run after market close and just open the dashboard each morning.
+
+## Market capitalization (opt-in via `--with-market-cap`)
+
+- Fetched as a **current snapshot**, separately from the historical OHLC
+  data, and only for the reference stock + the shortlisted matches (not
+  the full scanned universe) — so it adds only a handful of extra requests,
+  not hundreds.
+- Sourced from yfinance's `.info` dict, or NSE's quote-equity API when
+  `--source nse` is active. If yfinance comes up empty for a ticker, the
+  script automatically tries the NSE source as a fallback.
+- Displayed in the dashboard in Indian crore/lakh notation (e.g. "₹19.80L Cr"
+  for a company worth roughly ₹19.8 lakh crore), since that's the
+  conventional way this figure is read for NSE stocks.
+- Off by default because it's an extra round of network calls; turn it on
+  with `--with-market-cap` when you want it. Tickers where neither source
+  has a figure show as "n/a" in the dashboard rather than erroring out.
+
+## How "similarity" is calculated
+
+1. Each stock's closing-price series is **z-score normalized** (so price
+   level doesn't matter — a ₹50 stock and a ₹5,000 stock with the same %
+   movement pattern score identically).
+2. **Dynamic Time Warping (DTW)** measures shape distance between the
+   normalized reference and each candidate, tolerating small time-shifts.
+3. Distance is converted to a **0–100 similarity score**.
+4. A **linear-regression trend slope** filters out anything not actually
+   trending upward — by default any positive slope passes; raise
+   `--min-slope` to demand a steeper trend.
+
+## Things you should know before relying on this
+
+- **This is shape-matching, not prediction.** A high similarity score means
+  "this chart's recent path looks like that chart's recent path." It says
+  nothing about why, whether it'll continue, volume quality, fundamentals,
+  or news risk. Treat the output as a first-pass filter for your own
+  further research — not a buy signal.
+- **The bundled Nifty 500 ticker list is a best-effort reconstruction**, not
+  a verified live feed from NSE. It may contain stale, delisted, or
+  misspelled symbols. For serious use, download a current list from
+  [niftyindices.com](https://www.niftyindices.com) and pass it via
+  `--tickers-file`.
+- **Neither data backend is bulletproof.** yfinance is an unofficial Yahoo
+  wrapper that can rate-limit or silently return incomplete data. NSE's own
+  archive is official but actively guards against scripted access and has
+  changed its file format/URL before (most recently mid-2024) — if NSE
+  changes it again, `--source nse` will need a corresponding update in
+  `data_sources.py`. Spot-check a few tickers manually (e.g. on NSE's own
+  site) if a result looks surprising, regardless of which source you use.
+- **Market cap figures can lag the live exchange** by however long the
+  underlying API takes to refresh its snapshot — treat it as
+  "approximately current," not tick-by-tick accurate.
+- **Nothing here runs automatically in the background.** Both pieces
+  (script and dashboard) only act when you run/open them — there's no
+  always-on "agent" watching the market for you. If you want that, you'd
+  need to schedule the script on a server or machine that stays on.
