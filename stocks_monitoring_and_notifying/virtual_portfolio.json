@@ -1,5 +1,51 @@
 {
-    "cash_balance": 500000.0,
-    "positions": {},
+    "cash_balance": 74098.30000000002,
+    "positions": {
+        "YASHO": {
+            "entry_price": 4129.5,
+            "quantity": 14,
+            "initial_sl": 3793.6,
+            "trailing_sl": 3793.6,
+            "highest_price": 4129.5,
+            "target_price": 4633.35,
+            "partial_taken": false
+        },
+        "SONACOMS": {
+            "entry_price": 782.65,
+            "quantity": 152,
+            "initial_sl": 749.9,
+            "trailing_sl": 749.9,
+            "highest_price": 782.65,
+            "target_price": 831.775,
+            "partial_taken": false
+        },
+        "HNDFDS": {
+            "entry_price": 622.8,
+            "quantity": 157,
+            "initial_sl": 591.15,
+            "trailing_sl": 591.15,
+            "highest_price": 622.8,
+            "target_price": 670.2749999999999,
+            "partial_taken": false
+        },
+        "CARTRADE": {
+            "entry_price": 2932.3,
+            "quantity": 28,
+            "initial_sl": 2759.68,
+            "trailing_sl": 2759.68,
+            "highest_price": 2932.3,
+            "target_price": 3191.2300000000005,
+            "partial_taken": false
+        },
+        "PARAS": {
+            "entry_price": 1413.1,
+            "quantity": 49,
+            "initial_sl": 1311.79,
+            "trailing_sl": 1311.79,
+            "highest_price": 1413.1,
+            "target_price": 1565.0649999999998,
+            "partial_taken": false
+        }
+    },
     "trade_history": []
 }

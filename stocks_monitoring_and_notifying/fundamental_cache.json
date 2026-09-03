@@ -790,5 +790,59 @@
     "sector": "Industrials",
     "fetched_at": "2026-09-02T07:19:48.769023",
     "status": "OK"
+  },
+  "ETERNAL": {
+    "eps": 0.46,
+    "revenue_growth": 1.82,
+    "debt_to_equity": 14.826,
+    "market_cap": 3025812848640,
+    "sector": "Consumer Cyclical",
+    "fetched_at": "2026-09-03T07:23:56.845836",
+    "status": "OK"
+  },
+  "AETHER": {
+    "eps": 17.29,
+    "revenue_growth": 0.275,
+    "debt_to_equity": 18.646,
+    "market_cap": 223606603776,
+    "sector": "Basic Materials",
+    "fetched_at": "2026-09-03T07:23:57.436591",
+    "status": "OK"
+  },
+  "VARROC": {
+    "eps": 12.89,
+    "revenue_growth": 0.299,
+    "debt_to_equity": 50.855,
+    "market_cap": 128122232832,
+    "sector": "Consumer Cyclical",
+    "fetched_at": "2026-09-03T07:23:58.031512",
+    "status": "OK"
+  },
+  "STOVEKRAFT": {
+    "eps": 14.65,
+    "revenue_growth": 0.413,
+    "debt_to_equity": 23.223,
+    "market_cap": 27844911104,
+    "sector": "Consumer Cyclical",
+    "fetched_at": "2026-09-03T07:23:58.619489",
+    "status": "OK"
+  },
+  "KABRAEXTRU": {
+    "eps": 0.17,
+    "revenue_growth": -0.089,
+    "debt_to_equity": 32.04,
+    "market_cap": 19901292544,
+    "sector": "Industrials",
+    "fetched_at": "2026-09-03T07:23:59.202238",
+    "status": "OK"
+  },
+  "SUNDRMFAST": {
+    "eps": 29.03,
+    "revenue_growth": 0.204,
+    "debt_to_equity": 14.532,
+    "market_cap": 253687988224,
+    "sector": "Consumer Cyclical",
+    "fetched_at": "2026-09-03T07:23:59.849469",
+    "status": "OK"
   }
 }
