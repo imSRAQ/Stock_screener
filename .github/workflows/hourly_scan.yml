@@ -1,16 +1,6 @@
 name: NSE Stock Monitor
 
 on:
-  schedule:
-    # Daily full scan at 8:00 AM IST = 2:30 UTC (Mon-Fri)
-    - cron: '30 2 * * 1-5'
-    
-    # Weekly diff at 8:15 AM IST = 2:45 UTC (Monday only)
-    - cron: '45 2 * * 1'
-    
-    # Hourly refreshes 9 AM – 4 PM IST = 3:30 – 10:30 UTC (Mon-Fri)
-    - cron: '30 3,4,5,6,7,8,9,10 * * 1-5'
-    
   workflow_dispatch:
     # Allows manual trigger from GitHub UI
     inputs:
@@ -49,7 +39,7 @@ jobs:
           pip install numpy pandas requests yfinance tradingview-ta python-telegram-bot google-generativeai openai anthropic holidays matplotlib
 
       - name: Run Full Scan
-        if: github.event.schedule == '30 2 * * 1-5' || (github.event_name == 'workflow_dispatch' && github.event.inputs.mode == '--full')
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.mode == '--full'
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -62,7 +52,7 @@ jobs:
           python scheduler.py --full
 
       - name: Run Weekly Diff
-        if: github.event.schedule == '45 2 * * 1' || (github.event_name == 'workflow_dispatch' && github.event.inputs.mode == '--weekly')
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.mode == '--weekly'
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -75,7 +65,7 @@ jobs:
           python scheduler.py --weekly
 
       - name: Run Hourly Refresh
-        if: github.event.schedule == '30 3,4,5,6,7,8,9,10 * * 1-5' || (github.event_name == 'workflow_dispatch' && github.event.inputs.mode == '--hourly')
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.mode == '--hourly'
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}

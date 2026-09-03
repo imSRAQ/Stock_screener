@@ -14,7 +14,7 @@ DEFAULTS = {
     "schedule": {
         "full_scan_time_ist": "08:00",
         "hourly_enabled": True,
-        "hourly_start_ist": "09:00",
+        "hourly_start_ist": "10:00",
         "hourly_end_ist": "16:00",
         "top_n_for_hourly": 50,
     },

@@ -75,6 +75,42 @@ def _pull_latest():
         print(f"[warn] Git pull failed: {exc}")
 
 
+def _push_latest():
+    token = os.environ.get("GITHUB_TOKEN", "")
+    if not token:
+        print("[warn] GITHUB_TOKEN not set — cannot push updates to GitHub.")
+        return
+    try:
+        # Add the specific generated files using -f because JSONs are in .gitignore
+        files_to_add = [
+            "stocks_monitoring_and_notifying/docs/index.html",
+            "stocks_monitoring_and_notifying/latest_universe_data.json",
+            "stocks_monitoring_and_notifying/watchlist.json",
+            "stocks_monitoring_and_notifying/portfolio.json",
+            "stocks_monitoring_and_notifying/virtual_portfolio.json",
+            "stocks_monitoring_and_notifying/fundamental_cache.json",
+            "stocks_monitoring_and_notifying/historical_recommendations.json",
+            "stocks_monitoring_and_notifying/universe_snapshot.json",
+            "stocks_monitoring_and_notifying/universe_snapshot_prev.json"
+        ]
+        
+        for f in files_to_add:
+            subprocess.run(["git", "add", "-f", f], cwd=REPO_ROOT, capture_output=True)
+            
+        diff = subprocess.run(["git", "diff", "--staged", "--quiet"], cwd=REPO_ROOT)
+        if diff.returncode != 0: # Changes exist
+            subprocess.run(["git", "commit", "-m", "Auto-update state from 24/7 bot worker"], cwd=REPO_ROOT, capture_output=True)
+            r = subprocess.run(["git", "push"], cwd=REPO_ROOT, capture_output=True, text=True)
+            if r.returncode == 0:
+                print("[info] Successfully pushed state to GitHub.")
+            else:
+                print(f"[error] Failed to push to GitHub: {r.stderr}")
+        else:
+            print("[info] No state changes to push.")
+    except Exception as exc:
+        print(f"[warn] Git push failed: {exc}")
+
+
 # ── Main ──────────────────────────────────────────────────────────────────────
 def main():
     print("[info] NSE Bot Worker starting up...")
@@ -104,6 +140,43 @@ def main():
     if not notifier.is_configured:
         print("[error] Telegram token / chat_id missing. Exiting.")
         sys.exit(1)
+
+    # ── Background Scheduler (Replaces GitHub Actions) ──
+    try:
+        from scheduler import Scheduler
+        from apscheduler.schedulers.background import BackgroundScheduler
+        import pytz
+        
+        app_scheduler = Scheduler()
+        ist = pytz.timezone('Asia/Kolkata')
+        cron_sched = BackgroundScheduler(timezone=ist)
+        
+        def job_full_scan():
+            _pull_latest()
+            print("[info] Running full scheduled scan...")
+            app_scheduler.run_full()
+            _push_latest()
+
+        def job_hourly_scan():
+            _pull_latest()
+            print("[info] Running hourly scheduled scan...")
+            app_scheduler.run_hourly()
+            _push_latest()
+            
+        # Parse full scan time
+        f_time = config.schedule.get("full_scan_time_ist", "08:00")
+        f_hr, f_mn = f_time.split(":")
+        cron_sched.add_job(job_full_scan, 'cron', day_of_week='mon-fri', hour=int(f_hr), minute=int(f_mn))
+        
+        # Parse hourly start/end
+        h_start = int(config.schedule.get("hourly_start_ist", "10:00").split(":")[0])
+        h_end = int(config.schedule.get("hourly_end_ist", "16:00").split(":")[0])
+        cron_sched.add_job(job_hourly_scan, 'cron', day_of_week='mon-fri', hour=f"{h_start}-{h_end}", minute=0)
+        
+        cron_sched.start()
+        print(f"[info] APScheduler started (IST). Full scan at {f_time}, hourly between {h_start}:00 and {h_end}:00.")
+    except Exception as e:
+        print(f"[warn] Failed to start APScheduler: {e}. Please ensure 'apscheduler' and 'pytz' are in requirements.txt.")
 
     print("[info] All systems go. Telegram bot is listening 24/7...")
     notifier._run_bot_loop()  # blocks forever
