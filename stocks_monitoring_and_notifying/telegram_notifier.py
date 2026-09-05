@@ -425,21 +425,49 @@ class TelegramNotifier:
             
             self._bot_app = Application.builder().token(self.bot_token).build()
             
-            self._bot_app.add_handler(CommandHandler("start", self._cmd_start))
-            self._bot_app.add_handler(CommandHandler("help", self._cmd_help))
-            self._bot_app.add_handler(CommandHandler("watch", self._cmd_watch))
-            self._bot_app.add_handler(CommandHandler("unwatch", self._cmd_unwatch))
-            self._bot_app.add_handler(CommandHandler("watchlist", self._cmd_watchlist))
-            self._bot_app.add_handler(CommandHandler("status", self._cmd_status))
-            self._bot_app.add_handler(CommandHandler("hourly", self._cmd_hourly))
-            self._bot_app.add_handler(CommandHandler("entry", self._cmd_entry))
-            self._bot_app.add_handler(CommandHandler("exit", self._cmd_exit))
-            self._bot_app.add_handler(CommandHandler("portfolio", self._cmd_portfolio))
-            self._bot_app.add_handler(CommandHandler("chart", self._cmd_chart))
+            # ── Uptrend strategy commands (unchanged) ─────────────────────────────
+            self._bot_app.add_handler(CommandHandler("start",      self._cmd_start))
+            self._bot_app.add_handler(CommandHandler("help",       self._cmd_help))
+            self._bot_app.add_handler(CommandHandler("watch",      self._cmd_watch))
+            self._bot_app.add_handler(CommandHandler("unwatch",    self._cmd_unwatch))
+            self._bot_app.add_handler(CommandHandler("watchlist",  self._cmd_watchlist))
+            self._bot_app.add_handler(CommandHandler("status",     self._cmd_status))
+            self._bot_app.add_handler(CommandHandler("hourly",     self._cmd_hourly))
+            self._bot_app.add_handler(CommandHandler("entry",      self._cmd_entry))
+            self._bot_app.add_handler(CommandHandler("exit",       self._cmd_exit))
+            self._bot_app.add_handler(CommandHandler("portfolio",  self._cmd_portfolio))
+            self._bot_app.add_handler(CommandHandler("chart",      self._cmd_chart))
             self._bot_app.add_handler(CommandHandler("vportfolio", self._cmd_vportfolio))
-            self._bot_app.add_handler(CommandHandler("vhistory", self._cmd_vhistory))
-            self._bot_app.add_handler(CommandHandler("vreset", self._cmd_vreset))
-            
+            self._bot_app.add_handler(CommandHandler("vhistory",   self._cmd_vhistory))
+            self._bot_app.add_handler(CommandHandler("vreset",     self._cmd_vreset))
+
+            # ── RSI Reversal strategy commands (/rev* prefix) ─────────────────────
+            # Handlers live in Multi Timeframe RSI Reversal/rev_handlers.py
+            # This is the ONLY change needed to integrate the reversal strategy.
+            try:
+                import sys, os
+                _rev_path = os.path.join(
+                    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                    "Multi Timeframe RSI Reversal"
+                )
+                if _rev_path not in sys.path:
+                    sys.path.insert(0, _rev_path)
+                import rev_handlers as rev
+                self._bot_app.add_handler(CommandHandler("revhelp",      rev.cmd_help))
+                self._bot_app.add_handler(CommandHandler("revstatus",    rev.cmd_status))
+                self._bot_app.add_handler(CommandHandler("revscan",      rev.cmd_scan))
+                self._bot_app.add_handler(CommandHandler("revchart",     rev.cmd_chart))
+                self._bot_app.add_handler(CommandHandler("revsize",      rev.cmd_size))
+                self._bot_app.add_handler(CommandHandler("revblackout",  rev.cmd_blackout))
+                self._bot_app.add_handler(CommandHandler("revportfolio", rev.cmd_portfolio))
+                self._bot_app.add_handler(CommandHandler("revhistory",   rev.cmd_history))
+                self._bot_app.add_handler(CommandHandler("revreset",     rev.cmd_reset))
+                self._bot_app.add_handler(CommandHandler("revtoggle",    rev.cmd_toggle))
+                print("[info] RSI Reversal /rev* commands registered on shared bot.")
+            except Exception as rev_exc:
+                print(f"[warn] Could not load reversal handlers: {rev_exc}")
+                print("[warn] RSI Reversal /rev* commands will not be available.")
+
             self._bot_app.run_polling(drop_pending_updates=True)
         except Exception as e:
             print(f"[error] Telegram bot listener stopped: {e}")

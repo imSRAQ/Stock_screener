@@ -1,16 +1,39 @@
 services:
+  # Uptrend Strategy — main bot + polling loop + uptrend scan @ 08:00 IST
+  # Also hosts the RSI Reversal /rev* commands on the same Telegram bot (Option A).
   - type: worker
-    name: nse-telegram-bot
+    name: uptrend-nse-telegram-bot
     runtime: python
     repo: https://github.com/imSRAQ/Stock_screener
     buildCommand: pip install -r requirements.txt
     startCommand: python stocks_monitoring_and_notifying/bot_worker.py
     envVars:
       - key: TELEGRAM_BOT_TOKEN
-        sync: false        # you will paste this manually in Render dashboard
+        sync: false        # paste manually in Render dashboard
       - key: TELEGRAM_CHAT_ID
         sync: false
       - key: GEMINI_API_KEY
         sync: false
       - key: GITHUB_TOKEN
         sync: false        # Personal Access Token (repo scope)
+
+  # RSI Reversal Strategy — APScheduler only (NO Telegram polling, sends via Bot API)
+  # Full reversal scan @ 19:00 IST | Optional hourly re-check during market hours
+  # Deploy this ONLY if you want a completely isolated reversal scheduler process.
+  # For FREE Option A: comment out this block and add the reversal scheduler job
+  # directly inside the existing bot_worker.py (already done in bot_worker.py).
+  # - type: worker
+  #   name: rsi-reversal-scheduler
+  #   runtime: python
+  #   repo: https://github.com/imSRAQ/Stock_screener
+  #   buildCommand: pip install -r requirements.txt
+  #   startCommand: python "Multi Timeframe RSI Reversal/bot_worker.py"
+  #   envVars:
+  #     - key: TELEGRAM_BOT_TOKEN
+  #       sync: false
+  #     - key: TELEGRAM_CHAT_ID
+  #       sync: false
+  #     - key: GEMINI_API_KEY
+  #       sync: false
+  #     - key: GITHUB_TOKEN
+  #       sync: false

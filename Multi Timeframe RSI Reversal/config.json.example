@@ -1,0 +1,29 @@
+{
+  "telegram_bot_token": "<same-token-as-existing-system>",
+  "telegram_chat_id": "<your-chat-id>",
+  "gemini_api_key": "<your-gemini-key>",
+  "schedule": {
+    "full_scan_time_ist": "19:00",
+    "hourly_enabled": false,
+    "hourly_start_ist": "09:15",
+    "hourly_end_ist": "15:30",
+    "top_n_for_hourly": 50
+  },
+  "filters": {
+    "rsi_monthly_min": 60,
+    "rsi_weekly_min": 60,
+    "rsi_daily_band": [35, 45],
+    "sl_mode": "signal_candle_low",
+    "trailing_enabled": false,
+    "trailing_bar_count": 5,
+    "lookback_days": 400
+  },
+  "risk": {
+    "default_capital": 500000,
+    "risk_pct_default": 1.0,
+    "reward_multiple": 1.5,
+    "auto_paper_trade_enabled": true,
+    "partial_exit_pct": 50,
+    "max_positions": 5
+  }
+}

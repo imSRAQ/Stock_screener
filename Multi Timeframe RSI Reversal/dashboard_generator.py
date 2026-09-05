@@ -1,0 +1,936 @@
+"""
+dashboard_generator.py
+----------------------
+Generates a self-contained static HTML dashboard for the
+Multi-Timeframe RSI Reversal strategy.
+
+Output: Multi Timeframe RSI Reversal/docs/index.html  (GitHub Pages)
+        Multi Timeframe RSI Reversal/docs/scan/{date}.html (archive)
+
+Strategy: Multi-Timeframe RSI Reversal
+"""
+
+import os
+import json
+from datetime import datetime
+
+
+_HERE    = os.path.dirname(os.path.abspath(__file__))
+DOCS_DIR = os.path.join(_HERE, "docs")
+
+
+class DashboardGenerator:
+    """Builds the reversal strategy HTML dashboard."""
+
+    def __init__(self, docs_dir: str = None):
+        self.docs_dir  = docs_dir or DOCS_DIR
+        self.scan_dir  = os.path.join(self.docs_dir, "scan")
+        os.makedirs(self.docs_dir, exist_ok=True)
+        os.makedirs(self.scan_dir,  exist_ok=True)
+
+    # ------------------------------------------------------------------
+    # Public entry point
+    # ------------------------------------------------------------------
+
+    def generate(
+        self,
+        confirmed:  list[dict],
+        watchlist:  list[dict],
+        blacked_out: list[dict],
+        portfolio_state: dict,
+        scan_date: str = None,
+    ) -> str:
+        """Build and write index.html + archived scan page.
+
+        Parameters
+        ----------
+        confirmed    : confirmed_entry candidates (not blacked out)
+        watchlist    : early_entry candidates (not blacked out)
+        blacked_out  : all blacked-out candidates
+        portfolio_state : virtual_portfolio.json state dict
+        scan_date    : "YYYY-MM-DD", defaults to today
+
+        Returns
+        -------
+        str  absolute path to generated index.html
+        """
+        scan_date = scan_date or datetime.now().strftime("%Y-%m-%d")
+        html = self._build_html(confirmed, watchlist, blacked_out, portfolio_state, scan_date)
+
+        # Write main dashboard
+        index_path = os.path.join(self.docs_dir, "index.html")
+        with open(index_path, "w", encoding="utf-8") as fh:
+            fh.write(html)
+
+        # Write archived scan page
+        archive_path = os.path.join(self.scan_dir, f"{scan_date}.html")
+        with open(archive_path, "w", encoding="utf-8") as fh:
+            fh.write(html)
+
+        print(f"[info] Dashboard written -> {index_path}")
+        return index_path
+
+    # ------------------------------------------------------------------
+    # HTML builder
+    # ------------------------------------------------------------------
+
+    def _build_html(self, confirmed, watchlist, blacked_out, portfolio_state, scan_date):
+        conf_count   = len(confirmed)
+        watch_count  = len(watchlist)
+        bo_count     = len(blacked_out)
+        total        = conf_count + watch_count + bo_count
+        upd_time     = datetime.now().strftime("%d %b %Y, %H:%M IST")
+
+        cash    = portfolio_state.get("cash_balance", 0)
+        start   = portfolio_state.get("starting_balance", 500000)
+        equity  = cash + sum(
+            p.get("entry_price", 0) * p.get("quantity", 0)
+            for p in portfolio_state.get("positions", {}).values()
+        )
+        ret_pct = ((equity - start) / start * 100) if start else 0
+
+        # Build serialized JSON for JS
+        conf_json  = json.dumps(confirmed,   ensure_ascii=False)
+        watch_json = json.dumps(watchlist,   ensure_ascii=False)
+        bo_json    = json.dumps(blacked_out, ensure_ascii=False)
+        port_json  = json.dumps(portfolio_state, ensure_ascii=False)
+
+        confirmed_cards  = self._render_cards(confirmed,   "confirmed")
+        watchlist_cards  = self._render_cards(watchlist,   "watchlist")
+        blacked_out_cards = self._render_cards(blacked_out, "blacked")
+        portfolio_html   = self._render_portfolio(portfolio_state)
+
+        return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RSI Reversal Screener — {scan_date}</title>
+  <meta name="description" content="Multi-Timeframe RSI Reversal stock screener dashboard for NSE. Scan date {scan_date}.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+  <style>
+    :root {{
+      --bg:        #070d1a;
+      --surface:   #0e1929;
+      --surface2:  #162236;
+      --border:    rgba(99,179,237,0.12);
+      --accent:    #3b82f6;
+      --green:     #10b981;
+      --red:       #ef4444;
+      --yellow:    #f59e0b;
+      --text:      #e2e8f0;
+      --muted:     #64748b;
+      --conf:      #10b981;
+      --watch:     #f59e0b;
+      --bo:        #475569;
+    }}
+    * {{ box-sizing: border-box; margin: 0; padding: 0; }}
+    body {{
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }}
+
+    /* ── Header ── */
+    .header {{
+      background: linear-gradient(135deg, #0e1929 0%, #0a1628 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 1.5rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }}
+    .header-brand h1 {{
+      font-size: 1.6rem;
+      font-weight: 800;
+      background: linear-gradient(90deg, #3b82f6, #10b981);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.5px;
+    }}
+    .header-brand p {{ color: var(--muted); font-size: 0.82rem; margin-top: 0.2rem; }}
+    .header-stats {{ display: flex; gap: 1.5rem; flex-wrap: wrap; }}
+    .stat-pill {{
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 0.4rem 1rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }}
+    .stat-pill.conf  {{ border-color: var(--conf);   color: var(--conf);   }}
+    .stat-pill.watch {{ border-color: var(--watch);  color: var(--watch);  }}
+    .stat-pill.bo    {{ border-color: var(--bo);     color: var(--bo);     }}
+
+    /* ── Summary bar ── */
+    .summary-bar {{
+      display: flex;
+      gap: 1px;
+      background: var(--border);
+      border-bottom: 1px solid var(--border);
+    }}
+    .summary-item {{
+      flex: 1;
+      padding: 1rem 1.5rem;
+      background: var(--surface);
+      text-align: center;
+    }}
+    .summary-item .val {{
+      font-size: 1.6rem;
+      font-weight: 800;
+      line-height: 1;
+    }}
+    .summary-item .lbl {{ font-size: 0.72rem; color: var(--muted); margin-top: 0.3rem; text-transform: uppercase; letter-spacing: 0.05em; }}
+
+    /* ── Tabs ── */
+    .tab-bar {{
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      background: var(--surface);
+      overflow-x: auto;
+    }}
+    .tab-btn {{
+      padding: 0.9rem 1.4rem;
+      border: none;
+      background: none;
+      color: var(--muted);
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }}
+    .tab-btn:hover {{ color: var(--text); }}
+    .tab-btn.active {{ color: var(--accent); border-bottom-color: var(--accent); }}
+    .tab-btn .badge {{
+      display: inline-block;
+      margin-left: 0.4rem;
+      padding: 0.1rem 0.5rem;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      font-weight: 700;
+    }}
+    .tab-btn.active .badge-conf  {{ background: var(--conf);  color: #fff; }}
+    .tab-btn .badge-conf  {{ background: rgba(16,185,129,0.15); color: var(--conf);  }}
+    .tab-btn.active .badge-watch {{ background: var(--watch); color: #fff; }}
+    .tab-btn .badge-watch {{ background: rgba(245,158,11,0.15);  color: var(--watch); }}
+    .tab-btn.active .badge-bo    {{ background: var(--bo);   color: #fff; }}
+    .tab-btn .badge-bo    {{ background: rgba(71,85,105,0.3);     color: var(--bo);   }}
+    .tab-btn.active .badge-port  {{ background: var(--accent); color: #fff; }}
+    .tab-btn .badge-port  {{ background: rgba(59,130,246,0.15); color: var(--accent); }}
+
+    /* ── Tab panels ── */
+    .tab-panel {{ display: none; padding: 1.5rem 2rem; }}
+    .tab-panel.active {{ display: block; }}
+
+    /* ── Stock cards ── */
+    .cards-grid {{ display: flex; flex-direction: column; gap: 1rem; }}
+    .card {{
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }}
+    .card:hover {{ border-color: var(--accent); box-shadow: 0 0 0 1px rgba(59,130,246,0.2); }}
+    .card.blacked {{ opacity: 0.55; }}
+    .card-header {{
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem 1.2rem;
+      cursor: pointer;
+      user-select: none;
+    }}
+    .card-tag {{
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 0.25rem 0.6rem;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      flex-shrink: 0;
+    }}
+    .tag-confirmed {{ background: rgba(16,185,129,0.15); color: var(--conf);  border: 1px solid rgba(16,185,129,0.3); }}
+    .tag-early     {{ background: rgba(245,158,11,0.15);  color: var(--watch); border: 1px solid rgba(245,158,11,0.3); }}
+    .tag-blacked   {{ background: rgba(71,85,105,0.2);    color: var(--bo);   border: 1px solid rgba(71,85,105,0.3); }}
+
+    .card-symbol {{ font-size: 1.1rem; font-weight: 700; }}
+    .card-pattern {{ font-size: 0.75rem; color: var(--muted); }}
+    .card-spacer {{ flex: 1; }}
+    .rsi-badges {{ display: flex; gap: 0.4rem; }}
+    .rsi-badge {{
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      background: var(--surface2);
+    }}
+    .card-price {{ font-size: 1rem; font-weight: 700; text-align: right; }}
+    .card-arrow {{
+      color: var(--muted);
+      font-size: 0.9rem;
+      transition: transform 0.2s;
+      flex-shrink: 0;
+    }}
+    .card.expanded .card-arrow {{ transform: rotate(180deg); }}
+
+    /* Expandable body */
+    .card-body {{
+      display: none;
+      border-top: 1px solid var(--border);
+    }}
+    .card.expanded .card-body {{ display: block; }}
+
+    /* Levels row */
+    .levels-row {{
+      display: flex;
+      gap: 1rem;
+      padding: 1rem 1.2rem;
+      flex-wrap: wrap;
+      background: var(--surface2);
+    }}
+    .level-item {{ text-align: center; flex: 1; min-width: 80px; }}
+    .level-item .lv {{ font-size: 0.68rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }}
+    .level-item .lv-val {{ font-size: 0.95rem; font-weight: 700; margin-top: 0.2rem; }}
+    .entry-c {{ color: var(--accent); }}
+    .sl-c    {{ color: var(--red);    }}
+    .t1r-c   {{ color: var(--green);  }}
+    .t60-c   {{ color: #a78bfa;       }}
+
+    /* AI summary */
+    .ai-summary {{
+      padding: 0.8rem 1.2rem;
+      font-size: 0.82rem;
+      color: #94a3b8;
+      border-top: 1px solid var(--border);
+      line-height: 1.6;
+    }}
+    .ai-summary span {{ color: var(--muted); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; }}
+
+    /* Candle reason */
+    .candle-reason {{
+      padding: 0.5rem 1.2rem;
+      font-size: 0.75rem;
+      color: var(--yellow);
+      background: rgba(245,158,11,0.05);
+      border-top: 1px solid rgba(245,158,11,0.1);
+    }}
+
+    /* Chart container */
+    .chart-container {{
+      padding: 1rem 1.2rem;
+      border-top: 1px solid var(--border);
+    }}
+    .chart-wrapper {{
+      width: 100%;
+      height: 280px;
+      border-radius: 8px;
+      overflow: hidden;
+    }}
+    .rsi-chart-wrapper {{
+      width: 100%;
+      height: 120px;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-top: 0.5rem;
+    }}
+
+    /* ── Position Sizing Panel ── */
+    .sizing-panel {{
+      border-top: 1px solid var(--border);
+      padding: 1rem 1.2rem;
+      background: rgba(59,130,246,0.04);
+    }}
+    .sizing-panel h4 {{
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      margin-bottom: 0.8rem;
+    }}
+    .sizing-inputs {{
+      display: flex;
+      gap: 0.8rem;
+      margin-bottom: 0.8rem;
+      flex-wrap: wrap;
+    }}
+    .sizing-input-grp {{ display: flex; flex-direction: column; gap: 0.3rem; }}
+    .sizing-input-grp label {{ font-size: 0.7rem; color: var(--muted); }}
+    .sizing-input-grp input {{
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.85rem;
+      padding: 0.4rem 0.6rem;
+      width: 130px;
+    }}
+    .sizing-input-grp input:focus {{ outline: none; border-color: var(--accent); }}
+    .sizing-result-grid {{
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 0.5rem;
+    }}
+    .sizing-cell {{
+      background: var(--surface2);
+      border-radius: 6px;
+      padding: 0.5rem 0.7rem;
+    }}
+    .sizing-cell .sc-lbl {{ font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }}
+    .sizing-cell .sc-val {{ font-size: 0.92rem; font-weight: 700; margin-top: 0.15rem; }}
+    .sizing-warning {{
+      margin-top: 0.6rem;
+      font-size: 0.75rem;
+      color: var(--yellow);
+    }}
+
+    /* ── Virtual Portfolio Tab ── */
+    .port-summary {{
+      display: flex;
+      gap: 1px;
+      background: var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }}
+    .port-metric {{
+      flex: 1;
+      background: var(--surface);
+      padding: 1rem 1.2rem;
+      text-align: center;
+    }}
+    .port-metric .pm-val {{ font-size: 1.4rem; font-weight: 800; }}
+    .port-metric .pm-lbl {{ font-size: 0.7rem; color: var(--muted); margin-top: 0.25rem; text-transform: uppercase; letter-spacing: 0.05em; }}
+    .positions-table, .history-table {{
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+      margin-bottom: 1.5rem;
+    }}
+    .positions-table th, .history-table th {{
+      text-align: left;
+      padding: 0.6rem 0.8rem;
+      color: var(--muted);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--border);
+    }}
+    .positions-table td, .history-table td {{
+      padding: 0.7rem 0.8rem;
+      border-bottom: 1px solid rgba(99,179,237,0.06);
+    }}
+    .equity-canvas {{ width: 100%; height: 180px; border-radius: 8px; }}
+    .section-title {{ font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 0.8rem; }}
+
+    /* ── Empty state ── */
+    .empty-state {{
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--muted);
+    }}
+    .empty-state .es-icon {{ font-size: 3rem; margin-bottom: 1rem; }}
+    .empty-state p {{ font-size: 0.9rem; }}
+
+    /* ── Responsive ── */
+    @media (max-width: 640px) {{
+      .header {{ padding: 1rem; }}
+      .tab-panel {{ padding: 1rem; }}
+      .summary-bar {{ flex-wrap: wrap; }}
+    }}
+  </style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<header class="header">
+  <div class="header-brand">
+    <h1>📈 RSI Reversal Screener</h1>
+    <p>NSE Multi-Timeframe RSI Reversal (MWD 60-60-40) &nbsp;·&nbsp; Last updated: {upd_time}</p>
+  </div>
+  <div class="header-stats">
+    <span class="stat-pill conf">✅ {conf_count} Confirmed</span>
+    <span class="stat-pill watch">👀 {watch_count} Watchlist</span>
+    <span class="stat-pill bo">🚫 {bo_count} Blacked Out</span>
+  </div>
+</header>
+
+<!-- ── Summary bar ── -->
+<div class="summary-bar">
+  <div class="summary-item">
+    <div class="val" style="color:var(--text)">{total}</div>
+    <div class="lbl">Universe Hits</div>
+  </div>
+  <div class="summary-item">
+    <div class="val" style="color:var(--conf)">{conf_count}</div>
+    <div class="lbl">Confirmed Entries</div>
+  </div>
+  <div class="summary-item">
+    <div class="val" style="color:var(--watch)">{watch_count}</div>
+    <div class="lbl">Early Setups</div>
+  </div>
+  <div class="summary-item">
+    <div class="val" style="color:{'var(--green)' if ret_pct >= 0 else 'var(--red)'}">{ret_pct:+.1f}%</div>
+    <div class="lbl">Virtual Return</div>
+  </div>
+</div>
+
+<!-- ── Tab bar ── -->
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('confirmed', this)">
+    ✅ Confirmed <span class="badge badge-conf">{conf_count}</span>
+  </button>
+  <button class="tab-btn" onclick="switchTab('watchlist', this)">
+    👀 Watchlist <span class="badge badge-watch">{watch_count}</span>
+  </button>
+  <button class="tab-btn" onclick="switchTab('blacked', this)">
+    🚫 Blacked Out <span class="badge badge-bo">{bo_count}</span>
+  </button>
+  <button class="tab-btn" onclick="switchTab('portfolio', this)">
+    💼 Portfolio <span class="badge badge-port">{len(portfolio_state.get("positions", {}))}</span>
+  </button>
+</div>
+
+<!-- ── Confirmed Entries Tab ── -->
+<div id="tab-confirmed" class="tab-panel active">
+  <div class="cards-grid">
+    {confirmed_cards if confirmed_cards else '<div class="empty-state"><div class="es-icon">🔍</div><p>No confirmed entries in this scan.</p></div>'}
+  </div>
+</div>
+
+<!-- ── Watchlist Tab ── -->
+<div id="tab-watchlist" class="tab-panel">
+  <div class="cards-grid">
+    {watchlist_cards if watchlist_cards else '<div class="empty-state"><div class="es-icon">📋</div><p>No early setups found.</p></div>'}
+  </div>
+</div>
+
+<!-- ── Blacked Out Tab ── -->
+<div id="tab-blacked" class="tab-panel">
+  <div class="cards-grid">
+    {blacked_out_cards if blacked_out_cards else '<div class="empty-state"><div class="es-icon">✅</div><p>No blackouts active for this scan date.</p></div>'}
+  </div>
+</div>
+
+<!-- ── Portfolio Tab ── -->
+<div id="tab-portfolio" class="tab-panel">
+  {portfolio_html}
+</div>
+
+<script>
+// ── Tab switching ────────────────────────────────────────────────────────────
+function switchTab(name, btn) {{
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  btn.classList.add('active');
+  // Re-render badge classes on active tab
+  document.querySelectorAll('.tab-btn').forEach(b => {{
+    b.querySelectorAll('.badge').forEach(badge => {{
+      badge.classList.remove('badge-conf','badge-watch','badge-bo','badge-port');
+    }});
+  }});
+}}
+
+// ── Card expand/collapse ─────────────────────────────────────────────────────
+function toggleCard(id) {{
+  const card = document.getElementById(id);
+  card.classList.toggle('expanded');
+}}
+
+// ── Position Sizer (live JS calculator) ─────────────────────────────────────
+function recalcSize(symbol) {{
+  const capEl  = document.getElementById('cap-' + symbol);
+  const riskEl = document.getElementById('risk-' + symbol);
+  const entEl  = document.getElementById('entry-' + symbol);
+  const slEl   = document.getElementById('sl-' + symbol);
+
+  const capital  = parseFloat(capEl.value)  || 500000;
+  const riskPct  = parseFloat(riskEl.value) || 1.0;
+  const entry    = parseFloat(entEl.value)  || 0;
+  const sl       = parseFloat(slEl.value)   || 0;
+  const rr       = 1.5;
+
+  const riskPerShare = entry - sl;
+  const riskAmt      = capital * (riskPct / 100);
+  const qty          = riskPerShare > 0 ? Math.floor(riskAmt / riskPerShare) : 0;
+  const capReq       = qty * entry;
+  const target1R     = entry + rr * riskPerShare;
+  const potLoss      = qty * riskPerShare;
+  const potGain      = qty * rr * riskPerShare;
+
+  const fmt = v => '₹' + v.toLocaleString('en-IN', {{maximumFractionDigits: 2}});
+
+  document.getElementById('sz-rps-'   + symbol).textContent = riskPerShare > 0 ? fmt(riskPerShare) : '—';
+  document.getElementById('sz-ra-'    + symbol).textContent = fmt(riskAmt);
+  document.getElementById('sz-qty-'   + symbol).textContent = qty + ' shares';
+  document.getElementById('sz-creq-'  + symbol).textContent = fmt(capReq);
+  document.getElementById('sz-t1r-'   + symbol).textContent = entry > 0 ? fmt(target1R) : '—';
+  document.getElementById('sz-loss-'  + symbol).textContent = qty > 0 ? fmt(potLoss) : '—';
+  document.getElementById('sz-gain-'  + symbol).textContent = qty > 0 ? fmt(potGain) : '—';
+
+  const warnEl = document.getElementById('sz-warn-' + symbol);
+  if (riskPerShare <= 0) {{
+    warnEl.textContent = '⚠️ SL must be below entry price';
+  }} else if (capReq > capital) {{
+    warnEl.textContent = '⚠️ Capital required (' + fmt(capReq) + ') exceeds available capital';
+  }} else if (qty === 0) {{
+    warnEl.textContent = '⚠️ Position size is 0 — risk per share too large';
+  }} else {{
+    warnEl.textContent = '';
+  }}
+}}
+
+// ── Equity curve chart ───────────────────────────────────────────────────────
+function drawEquityCurve(canvasId, history, startingBalance) {{
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  canvas.width  = canvas.offsetWidth;
+  canvas.height = 180;
+
+  if (!history || history.length === 0) {{
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#64748b';
+    ctx.textAlign = 'center';
+    ctx.font = '13px Inter';
+    ctx.fillText('No trade history yet', canvas.width / 2, canvas.height / 2);
+    return;
+  }}
+
+  // Build cumulative P&L series
+  let equity = startingBalance;
+  const points = [equity];
+  history.forEach(t => {{ equity += (t.pnl || 0); points.push(equity); }});
+
+  const minV = Math.min(...points);
+  const maxV = Math.max(...points);
+  const range = maxV - minV || 1;
+  const w = canvas.width, h = canvas.height;
+  const pad = 20;
+
+  const toX = i => pad + (i / (points.length - 1)) * (w - 2 * pad);
+  const toY = v => h - pad - ((v - minV) / range) * (h - 2 * pad);
+
+  // Background
+  ctx.fillStyle = '#0e1929';
+  ctx.fillRect(0, 0, w, h);
+
+  // Gradient fill
+  const grad = ctx.createLinearGradient(0, 0, 0, h);
+  const lastColor = points[points.length - 1] >= startingBalance ? 'rgba(16,185,129,' : 'rgba(239,68,68,';
+  grad.addColorStop(0,   lastColor + '0.3)');
+  grad.addColorStop(1,   lastColor + '0.0)');
+
+  ctx.beginPath();
+  ctx.moveTo(toX(0), h - pad);
+  points.forEach((v, i) => {{ ctx.lineTo(toX(i), toY(v)); }});
+  ctx.lineTo(toX(points.length - 1), h - pad);
+  ctx.closePath();
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // Line
+  ctx.beginPath();
+  ctx.strokeStyle = points[points.length - 1] >= startingBalance ? '#10b981' : '#ef4444';
+  ctx.lineWidth = 2;
+  points.forEach((v, i) => {{
+    if (i === 0) ctx.moveTo(toX(i), toY(v));
+    else         ctx.lineTo(toX(i), toY(v));
+  }});
+  ctx.stroke();
+
+  // Start line
+  ctx.beginPath();
+  ctx.strokeStyle = 'rgba(100,116,139,0.4)';
+  ctx.setLineDash([4, 4]);
+  ctx.lineWidth = 1;
+  ctx.moveTo(pad, toY(startingBalance));
+  ctx.lineTo(w - pad, toY(startingBalance));
+  ctx.stroke();
+  ctx.setLineDash([]);
+}}
+
+// Init equity curve on page load
+const portData = {port_json};
+window.addEventListener('load', () => {{
+  drawEquityCurve(
+    'equity-curve',
+    portData.trade_history || [],
+    portData.starting_balance || 500000
+  );
+}});
+</script>
+
+</body>
+</html>"""
+
+    # ------------------------------------------------------------------
+    # Card renderer
+    # ------------------------------------------------------------------
+
+    def _render_cards(self, candidates: list, group: str) -> str:
+        if not candidates:
+            return ""
+
+        parts = []
+        for c in candidates:
+            sym     = c.get("symbol", "?")
+            tag     = c.get("tag", "early_entry")
+            price   = c.get("price", 0)
+            entry   = c.get("entry", 0)
+            sl      = c.get("sl",    0)
+            t1r     = c.get("target_1r",  0)
+            t60     = c.get("target_rsi60", 0)
+            rsi_d   = c.get("rsi_daily",   "?")
+            rsi_w   = c.get("rsi_weekly",  "?")
+            rsi_m   = c.get("rsi_monthly", "?")
+            pattern = c.get("signal_candle_pattern", "")
+            reason  = c.get("signal_candle_reason",  "")
+            ai      = c.get("ai_summary", "")
+            bo      = c.get("blacked_out", False)
+            bo_rsn  = c.get("blackout_reason", "")
+
+            card_id   = f"card-{group}-{sym}"
+            safe_sym  = sym.replace("&", "").replace(" ", "_")
+
+            if tag == "confirmed_entry":
+                tag_html  = '<span class="card-tag tag-confirmed">✅ Confirmed</span>'
+            elif bo:
+                tag_html  = '<span class="card-tag tag-blacked">🚫 Blacked Out</span>'
+            else:
+                tag_html  = '<span class="card-tag tag-early">👀 Watchlist</span>'
+
+            bo_class = " blacked" if bo else ""
+
+            parts.append(f"""
+<div class="card{bo_class}" id="{card_id}">
+  <div class="card-header" onclick="toggleCard('{card_id}')">
+    {tag_html}
+    <div>
+      <div class="card-symbol">{sym}</div>
+      <div class="card-pattern">{pattern} · {c.get("signal_candle_date","")}</div>
+    </div>
+    <div class="card-spacer"></div>
+    <div class="rsi-badges">
+      <span class="rsi-badge" title="Monthly RSI">M {rsi_m}</span>
+      <span class="rsi-badge" title="Weekly RSI">W {rsi_w}</span>
+      <span class="rsi-badge" style="color:var(--yellow)" title="Daily RSI (pullback)">D {rsi_d}</span>
+    </div>
+    <div style="margin-left:0.8rem">
+      <div class="card-price">₹{price:,.2f}</div>
+    </div>
+    <div class="card-arrow">▼</div>
+  </div>
+
+  <div class="card-body">
+    {f'<div class="candle-reason">💡 {reason}</div>' if reason else ''}
+    {f'<div class="ai-summary"><span>AI Analysis</span><br>{ai}</div>' if ai else ''}
+    {f'<div class="ai-summary" style="color:var(--bo)"><span>Blackout Reason</span><br>{bo_rsn}</div>' if bo and bo_rsn else ''}
+
+    <div class="levels-row">
+      <div class="level-item">
+        <div class="lv">Entry</div>
+        <div class="lv-val entry-c">₹{entry:,.2f}</div>
+      </div>
+      <div class="level-item">
+        <div class="lv">Stop Loss</div>
+        <div class="lv-val sl-c">₹{sl:,.2f}</div>
+      </div>
+      <div class="level-item">
+        <div class="lv">1R Target (1.5×)</div>
+        <div class="lv-val t1r-c">₹{t1r:,.2f}</div>
+      </div>
+      <div class="level-item">
+        <div class="lv">RSI-60 Target</div>
+        <div class="lv-val t60-c">₹{t60:,.2f}</div>
+      </div>
+      <div class="level-item">
+        <div class="lv">Risk/Share</div>
+        <div class="lv-val" style="color:var(--text)">₹{(entry - sl):,.2f}</div>
+      </div>
+    </div>
+
+    <!-- Position Sizing Panel -->
+    <div class="sizing-panel">
+      <h4>📐 Position Sizing Calculator</h4>
+      <div class="sizing-inputs">
+        <div class="sizing-input-grp">
+          <label>Capital (₹)</label>
+          <input id="cap-{safe_sym}" type="number" value="500000"
+                 oninput="recalcSize('{safe_sym}')">
+        </div>
+        <div class="sizing-input-grp">
+          <label>Risk %</label>
+          <input id="risk-{safe_sym}" type="number" value="1.0" step="0.1"
+                 oninput="recalcSize('{safe_sym}')">
+        </div>
+        <div class="sizing-input-grp">
+          <label>Entry ₹</label>
+          <input id="entry-{safe_sym}" type="number" value="{entry:.2f}"
+                 oninput="recalcSize('{safe_sym}')">
+        </div>
+        <div class="sizing-input-grp">
+          <label>SL ₹</label>
+          <input id="sl-{safe_sym}" type="number" value="{sl:.2f}"
+                 oninput="recalcSize('{safe_sym}')">
+        </div>
+      </div>
+      <div class="sizing-result-grid">
+        <div class="sizing-cell">
+          <div class="sc-lbl">Risk / Share</div>
+          <div class="sc-val sl-c" id="sz-rps-{safe_sym}">₹{(entry-sl):,.2f}</div>
+        </div>
+        <div class="sizing-cell">
+          <div class="sc-lbl">Risk Amount</div>
+          <div class="sc-val" id="sz-ra-{safe_sym}">₹5,000</div>
+        </div>
+        <div class="sizing-cell">
+          <div class="sc-lbl">Shares to Buy</div>
+          <div class="sc-val entry-c" id="sz-qty-{safe_sym}">—</div>
+        </div>
+        <div class="sizing-cell">
+          <div class="sc-lbl">Capital Required</div>
+          <div class="sc-val" id="sz-creq-{safe_sym}">—</div>
+        </div>
+        <div class="sizing-cell">
+          <div class="sc-lbl">1R Exit Price</div>
+          <div class="sc-val t1r-c" id="sz-t1r-{safe_sym}">₹{t1r:,.2f}</div>
+        </div>
+        <div class="sizing-cell">
+          <div class="sc-lbl">Potential Loss</div>
+          <div class="sc-val sl-c" id="sz-loss-{safe_sym}">—</div>
+        </div>
+        <div class="sizing-cell">
+          <div class="sc-lbl">Gain @ 1R</div>
+          <div class="sc-val t1r-c" id="sz-gain-{safe_sym}">—</div>
+        </div>
+      </div>
+      <div class="sizing-warning" id="sz-warn-{safe_sym}"></div>
+    </div>
+
+    <script>recalcSize('{safe_sym}');</script>
+  </div>
+</div>""")
+
+        return "\n".join(parts)
+
+    # ------------------------------------------------------------------
+    # Portfolio tab renderer
+    # ------------------------------------------------------------------
+
+    def _render_portfolio(self, state: dict) -> str:
+        positions    = state.get("positions", {})
+        history      = state.get("trade_history", [])
+        cash         = state.get("cash_balance", 0)
+        starting_bal = state.get("starting_balance", 500000)
+
+        # Compute equity
+        equity   = cash + sum(
+            p.get("entry_price", 0) * p.get("quantity", 0)
+            for p in positions.values()
+        )
+        ret_pct  = ((equity - starting_bal) / starting_bal * 100) if starting_bal else 0
+        ret_color = "var(--green)" if ret_pct >= 0 else "var(--red)"
+
+        # Win rate
+        closed  = [t for t in history if t.get("pnl") is not None]
+        wins    = [t for t in closed if t["pnl"] > 0]
+        wr      = (len(wins) / len(closed) * 100) if closed else 0
+        total_pnl = sum(t["pnl"] for t in closed)
+
+        # Open positions table
+        pos_rows = ""
+        for sym, pos in positions.items():
+            pnl   = (pos.get("entry_price", 0) - pos.get("entry_price", 0)) * pos.get("quantity", 0)
+            pnl_c = "var(--green)" if pnl >= 0 else "var(--red)"
+            pos_rows += f"""
+            <tr>
+              <td><b>{sym}</b></td>
+              <td>{pos.get("signal_candle_pattern","")}</td>
+              <td>₹{pos.get("entry_price",0):,.2f}</td>
+              <td>{pos.get("quantity",0)}</td>
+              <td>₹{pos.get("sl",0):,.2f}</td>
+              <td>₹{pos.get("target_1r",0):,.2f}</td>
+              <td>₹{pos.get("target_rsi60",0):,.2f}</td>
+              <td style="color:{pnl_c}">{"✅" if pos.get("partial_taken") else "⏳"}</td>
+            </tr>"""
+
+        if not pos_rows:
+            pos_rows = '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:1.5rem">No open positions</td></tr>'
+
+        # History table
+        hist_rows = ""
+        for t in reversed(history[-20:]):
+            pnl   = t.get("pnl", 0)
+            pnl_c = "var(--green)" if pnl >= 0 else "var(--red)"
+            hist_rows += f"""
+            <tr>
+              <td><b>{t.get("symbol","")}</b></td>
+              <td style="font-size:0.75rem">{t.get("type","")}</td>
+              <td>₹{t.get("exit_price",0):,.2f}</td>
+              <td style="color:{pnl_c};font-weight:700">₹{pnl:+,.2f}</td>
+              <td style="color:var(--muted);font-size:0.75rem">{t.get("date","")}</td>
+            </tr>"""
+
+        if not hist_rows:
+            hist_rows = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:1.5rem">No closed trades yet</td></tr>'
+
+        return f"""
+<div class="port-summary">
+  <div class="port-metric">
+    <div class="pm-val">₹{equity:,.0f}</div>
+    <div class="pm-lbl">Portfolio Value</div>
+  </div>
+  <div class="port-metric">
+    <div class="pm-val">₹{cash:,.0f}</div>
+    <div class="pm-lbl">Cash Available</div>
+  </div>
+  <div class="port-metric">
+    <div class="pm-val" style="color:{ret_color}">{ret_pct:+.1f}%</div>
+    <div class="pm-lbl">Total Return</div>
+  </div>
+  <div class="port-metric">
+    <div class="pm-val" style="color:var(--green)">{wr:.0f}%</div>
+    <div class="pm-lbl">Win Rate ({len(closed)} trades)</div>
+  </div>
+  <div class="port-metric">
+    <div class="pm-val" style="color:{'var(--green)' if total_pnl >= 0 else 'var(--red)'}">₹{total_pnl:+,.0f}</div>
+    <div class="pm-lbl">Realised P&L</div>
+  </div>
+</div>
+
+<div class="section-title">📈 Equity Curve</div>
+<canvas id="equity-curve" class="equity-canvas" style="background:var(--surface);border-radius:8px;margin-bottom:1.5rem"></canvas>
+
+<div class="section-title">📂 Open Positions ({len(positions)})</div>
+<table class="positions-table">
+  <thead>
+    <tr>
+      <th>Symbol</th><th>Pattern</th><th>Entry</th><th>Qty</th>
+      <th>SL</th><th>1R Target</th><th>RSI-60 Target</th><th>Partial</th>
+    </tr>
+  </thead>
+  <tbody>{pos_rows}</tbody>
+</table>
+
+<div class="section-title">📋 Trade History (last 20)</div>
+<table class="history-table">
+  <thead>
+    <tr><th>Symbol</th><th>Type</th><th>Exit Price</th><th>P&L</th><th>Date</th></tr>
+  </thead>
+  <tbody>{hist_rows}</tbody>
+</table>
+"""

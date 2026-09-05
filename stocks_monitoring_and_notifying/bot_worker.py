@@ -173,6 +173,50 @@ def main():
         h_end = int(config.schedule.get("hourly_end_ist", "16:00").split(":")[0])
         cron_sched.add_job(job_hourly_scan, 'cron', day_of_week='mon-fri', hour=f"{h_start}-{h_end}", minute=0)
         
+        # ── RSI Reversal Strategy Scheduler (Option A — same service, zero extra cost) ──
+        try:
+            import sys as _sys
+            _rev_path = os.path.join(REPO_ROOT, "Multi Timeframe RSI Reversal")
+            if _rev_path not in _sys.path:
+                _sys.path.insert(0, _rev_path)
+
+            def job_reversal_full_scan():
+                _pull_latest()
+                print("[info] Running RSI Reversal full scan (19:00 IST)...")
+                from scheduler import Scheduler as RevScheduler
+                RevScheduler().run_full()
+                _push_latest()
+
+            # Parse reversal scan time from reversal config (default 19:00)
+            from config_manager import ConfigManager as RevConfig
+            rev_cfg  = RevConfig()
+            rev_time = rev_cfg.schedule.get("full_scan_time_ist", "19:00")
+            rv_hr, rv_mn = rev_time.split(":")
+            cron_sched.add_job(
+                job_reversal_full_scan, "cron",
+                day_of_week="mon-fri", hour=int(rv_hr), minute=int(rv_mn),
+                id="reversal_full_scan"
+            )
+            print(f"[info] RSI Reversal scan scheduled at {rev_time} IST (Mon–Fri).")
+
+            # Optional hourly breakout re-check for reversal watchlist
+            if rev_cfg.hourly_enabled:
+                def job_reversal_hourly():
+                    from scheduler import Scheduler as RevScheduler
+                    RevScheduler().run_hourly()
+
+                rh_start = int(rev_cfg.schedule.get("hourly_start_ist", "09:15").split(":")[0])
+                rh_end   = int(rev_cfg.schedule.get("hourly_end_ist",   "15:30").split(":")[0])
+                cron_sched.add_job(
+                    job_reversal_hourly, "cron",
+                    day_of_week="mon-fri", hour=f"{rh_start}-{rh_end}", minute=15,
+                    id="reversal_hourly"
+                )
+                print(f"[info] RSI Reversal hourly re-check: {rh_start}:15–{rh_end}:15 IST.")
+        except Exception as rev_e:
+            print(f"[warn] Could not schedule RSI Reversal jobs: {rev_e}")
+        # ── End Reversal Scheduler ──────────────────────────────────────────────────
+
         cron_sched.start()
         print(f"[info] APScheduler started (IST). Full scan at {f_time}, hourly between {h_start}:00 and {h_end}:00.")
     except Exception as e:
