@@ -183,12 +183,12 @@ def main():
             def job_reversal_full_scan():
                 _pull_latest()
                 print("[info] Running RSI Reversal full scan (19:00 IST)...")
-                from scheduler import Scheduler as RevScheduler
-                RevScheduler().run_full()
+                import subprocess
+                subprocess.run(["python", "scheduler.py", "--full"], cwd=_rev_path)
                 _push_latest()
 
             # Parse reversal scan time from reversal config (default 19:00)
-            from config_manager import ConfigManager as RevConfig
+            from rev_config import ConfigManager as RevConfig
             rev_cfg  = RevConfig()
             rev_time = rev_cfg.schedule.get("full_scan_time_ist", "19:00")
             rv_hr, rv_mn = rev_time.split(":")

@@ -34,7 +34,7 @@ _HERE = os.path.dirname(os.path.abspath(__file__))
 if _HERE not in sys.path:
     sys.path.insert(0, _HERE)
 
-from config_manager        import ConfigManager
+from rev_config            import ConfigManager
 from data_fetcher          import DataFetcher
 from reversal_analyzer     import ReversalAnalyzer
 from event_blackout_filter import EventBlackoutFilter

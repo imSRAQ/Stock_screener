@@ -31,7 +31,7 @@ _HERE = os.path.dirname(os.path.abspath(__file__))
 if _HERE not in sys.path:
     sys.path.insert(0, _HERE)
 
-from config_manager        import ConfigManager
+from rev_config            import ConfigManager
 from paper_trader          import PaperTrader
 from event_blackout_filter import EventBlackoutFilter
 from position_sizer        import compute as _size_compute
@@ -182,12 +182,11 @@ async def cmd_scan(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handler for /revscan — trigger an on-demand full scan."""
     await _reply(update, "⏳ <b>RSI Reversal scan started…</b>\nThis may take a few minutes. I'll notify you when done.")
     try:
-        from scheduler import Scheduler
-        sched = Scheduler()
-        sched.run_full()
-        await _reply(update, "✅ <b>Reversal scan complete!</b> Check the dashboard or use /revstatus.")
+        import subprocess
+        # Run in background so we don't freeze the bot loop
+        subprocess.Popen(["python", "scheduler.py", "--full"], cwd=_HERE)
     except Exception as exc:
-        await _reply(update, f"❌ <b>Scan failed:</b> {exc}")
+        await _reply(update, f"❌ <b>Scan failed to start:</b> {exc}")
 
 
 async def cmd_chart(update: Update, context: ContextTypes.DEFAULT_TYPE):
