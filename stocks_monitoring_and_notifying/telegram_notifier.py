@@ -189,12 +189,16 @@ class TelegramNotifier:
             "/entry RELIANCE 2500 10 2400\n"
             "/chart INFY\n\n"
             "<b>System Controls:</b>\n"
+            "/scan — Trigger a full Uptrend scan manually\n"
             "/status — View market health & config\n"
             "/hourly on|off — Toggle hourly scans\n\n"
             "<b>🎮 Virtual Auto-Trader:</b>\n"
             "/vportfolio — View virtual holdings\n"
             "/vhistory — View recent virtual trades\n"
             "/vreset — Reset virtual balance to ₹500,000\n\n"
+            "<b>🔄 RSI Reversal Strategy:</b>\n"
+            "/revhelp — Show all RSI Reversal commands\n"
+            "/revscan — Trigger a full RSI Reversal scan manually\n\n"
             "/help — Show this menu again"
         )
         await update.message.reply_text(welcome_msg, parse_mode='HTML')
@@ -234,6 +238,17 @@ class TelegramNotifier:
         status = mh.get("status_text", "UNKNOWN")
         hourly = "ON" if self.config.hourly_enabled else "OFF"
         await update.message.reply_text(f"System Status:\n{status}\nHourly Scans: {hourly}")
+
+    async def _cmd_scan(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Manually trigger a full scan for the Uptrend strategy."""
+        await update.message.reply_text("⏳ <b>Manual Uptrend Scan started...</b>\nThis may take a few minutes depending on API limits. I will notify you when it's done.", parse_mode="HTML")
+        try:
+            import subprocess, os
+            # Run in background so we don't freeze the bot loop
+            _here = os.path.dirname(os.path.abspath(__file__))
+            subprocess.Popen(["python", "scheduler.py", "--full"], cwd=_here)
+        except Exception as exc:
+            await update.message.reply_text(f"❌ <b>Scan failed to start:</b> {exc}", parse_mode="HTML")
 
     async def _cmd_hourly(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         if not context.args or context.args[0].lower() not in ["on", "off"]:
@@ -432,6 +447,7 @@ class TelegramNotifier:
             self._bot_app.add_handler(CommandHandler("unwatch",    self._cmd_unwatch))
             self._bot_app.add_handler(CommandHandler("watchlist",  self._cmd_watchlist))
             self._bot_app.add_handler(CommandHandler("status",     self._cmd_status))
+            self._bot_app.add_handler(CommandHandler("scan",       self._cmd_scan))
             self._bot_app.add_handler(CommandHandler("hourly",     self._cmd_hourly))
             self._bot_app.add_handler(CommandHandler("entry",      self._cmd_entry))
             self._bot_app.add_handler(CommandHandler("exit",       self._cmd_exit))
