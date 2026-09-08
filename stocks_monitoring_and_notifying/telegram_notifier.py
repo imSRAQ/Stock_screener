@@ -77,10 +77,33 @@ class TelegramNotifier:
         return chunks
 
     def send_message(self, text: str):
-        """Sends a message synchronously (auto-splits if too long)."""
+        """Sends a message synchronously (auto-splits if too long).
+
+        Thread-safe: works whether or not an asyncio event loop is already
+        running (e.g. when called from an APScheduler job inside the bot
+        process).
+        """
         if not self.is_configured:
             return
-        asyncio.run(self._send_message_async(text))
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            loop = None
+
+        if loop and loop.is_running():
+            # We are inside an active event loop (e.g. APScheduler / bot thread).
+            # Schedule the coroutine on that loop from a worker thread.
+            import concurrent.futures
+            future = asyncio.run_coroutine_threadsafe(
+                self._send_message_async(text), loop
+            )
+            try:
+                future.result(timeout=30)  # wait up to 30s
+            except Exception as exc:
+                print(f"[error] send_message (threadsafe) failed: {exc}")
+        else:
+            # No event loop running — safe to use asyncio.run
+            asyncio.run(self._send_message_async(text))
 
     def _format_stock_entry(self, data: dict, sentiment: dict, ai_summary: dict) -> str:
         """Formats a single stock for the Entry/Exit lists."""
@@ -241,14 +264,25 @@ class TelegramNotifier:
 
     async def _cmd_scan(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Manually trigger a full scan for the Uptrend strategy."""
-        await update.message.reply_text("⏳ <b>Manual Uptrend Scan started...</b>\nThis may take a few minutes depending on API limits. I will notify you when it's done.", parse_mode="HTML")
-        try:
-            import subprocess, os
-            # Run in background so we don't freeze the bot loop
-            _here = os.path.dirname(os.path.abspath(__file__))
-            subprocess.Popen(["python", "scheduler.py", "--full"], cwd=_here)
-        except Exception as exc:
-            await update.message.reply_text(f"❌ <b>Scan failed to start:</b> {exc}", parse_mode="HTML")
+        await update.message.reply_text(
+            "⏳ <b>Manual Uptrend Scan started...</b>\n"
+            "This may take a few minutes depending on API limits. "
+            "I will notify you when it's done.",
+            parse_mode="HTML"
+        )
+
+        def _run_scan_thread():
+            try:
+                from scheduler import Scheduler
+                sched = Scheduler()
+                sched.run_full()
+            except SystemExit:
+                # Scheduler calls sys.exit on config errors — catch it
+                self.send_message("❌ <b>Uptrend Scan failed:</b> Configuration error (check API keys).")
+            except Exception as exc:
+                self.send_message(f"❌ <b>Uptrend Scan failed:</b> {exc}")
+
+        threading.Thread(target=_run_scan_thread, daemon=True).start()
 
     async def _cmd_hourly(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         if not context.args or context.args[0].lower() not in ["on", "off"]:

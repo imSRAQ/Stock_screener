@@ -163,8 +163,9 @@ class Scheduler:
         history_mgr.record_entries(final_entries)
         analytics = history_mgr.calculate_analytics()
         
-        # Since docs is now inside stocks_monitoring_and_notifying, we point to "docs"
-        dashboard_gen = DashboardGenerator(docs_dir="docs")
+        # Since docs is now inside stocks_monitoring_and_notifying, use absolute path
+        _docs_abs = os.path.join(os.path.dirname(__file__), "docs")
+        dashboard_gen = DashboardGenerator(docs_dir=_docs_abs)
         dashboard_gen.generate(final_entries, final_exits, market_health, analytics, self.portfolio.get_portfolio())
         
         # --- EXECUTE VIRTUAL TRADES ---
@@ -173,18 +174,28 @@ class Scheduler:
         v_positions = pt.get_portfolio()
         current_prices = {}
         if v_positions:
-            fetcher = DataFetcher()
-            # Fetch latest data for virtual positions (needs just a few days for current price/ATR)
-            v_data = fetcher.fetch_all_universe(period_days=20, symbols=list(v_positions.keys()))
-            for sym, df in v_data.items():
-                if not df.empty:
-                    close = df['Close'].iloc[-1]
-                    # calc simple ATR
-                    high = df['High'].iloc[-1]
-                    low = df['Low'].iloc[-1]
-                    prev_close = df['Close'].iloc[-2] if len(df) > 1 else close
-                    tr = max(high - low, abs(high - prev_close), abs(low - prev_close))
-                    current_prices[sym] = {"price": close, "atr": tr}
+            try:
+                import yfinance as _yf
+                yf_syms = [f"{s}.NS" for s in v_positions.keys()]
+                _price_data = _yf.download(yf_syms, period="5d", group_by="ticker", threads=True, progress=False)
+                for sym in v_positions.keys():
+                    yf_sym = f"{sym}.NS"
+                    try:
+                        if len(yf_syms) == 1:
+                            df = _price_data
+                        else:
+                            df = _price_data[yf_sym]
+                        if df is not None and not df.empty:
+                            close = float(df['Close'].iloc[-1])
+                            high = float(df['High'].iloc[-1])
+                            low = float(df['Low'].iloc[-1])
+                            prev_close = float(df['Close'].iloc[-2]) if len(df) > 1 else close
+                            tr = max(high - low, abs(high - prev_close), abs(low - prev_close))
+                            current_prices[sym] = {"price": close, "atr": tr}
+                    except Exception:
+                        pass
+            except Exception as exc:
+                print(f"[warn] Failed to fetch virtual position prices: {exc}")
 
         pt.execute_trades(final_entries, final_exits, current_prices, self.notifier)
         

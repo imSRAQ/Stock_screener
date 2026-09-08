@@ -104,11 +104,20 @@ def send_alert(token: str, chat_id: str, text: str):
                 print(f"[warn] send_alert failed: {exc}")
 
     try:
-        asyncio.run(_send(text))
+        loop = asyncio.get_running_loop()
     except RuntimeError:
-        # Already inside an event loop (e.g. during bot_worker polling)
-        loop = asyncio.get_event_loop()
-        loop.create_task(_send(text))
+        loop = None
+
+    if loop and loop.is_running():
+        # We're inside an active event loop — use thread-safe submission
+        future = asyncio.run_coroutine_threadsafe(_send(text), loop)
+        try:
+            future.result(timeout=30)
+        except Exception as exc:
+            print(f"[warn] send_alert (threadsafe) failed: {exc}")
+    else:
+        # No event loop running — safe to create one
+        asyncio.run(_send(text))
 
 
 # ══════════════════════════════════════════════════════════════════════════════
