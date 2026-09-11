@@ -219,9 +219,6 @@ class TelegramNotifier:
             "/vportfolio — View virtual holdings\n"
             "/vhistory — View recent virtual trades\n"
             "/vreset — Reset virtual balance to ₹500,000\n\n"
-            "<b>🔄 RSI Reversal Strategy:</b>\n"
-            "/revhelp — Show all RSI Reversal commands\n"
-            "/revscan — Trigger a full RSI Reversal scan manually\n\n"
             "/help — Show this menu again"
         )
         await update.message.reply_text(welcome_msg, parse_mode='HTML')
@@ -490,33 +487,6 @@ class TelegramNotifier:
             self._bot_app.add_handler(CommandHandler("vportfolio", self._cmd_vportfolio))
             self._bot_app.add_handler(CommandHandler("vhistory",   self._cmd_vhistory))
             self._bot_app.add_handler(CommandHandler("vreset",     self._cmd_vreset))
-
-            # ── RSI Reversal strategy commands (/rev* prefix) ─────────────────────
-            # Handlers live in Multi Timeframe RSI Reversal/rev_handlers.py
-            # This is the ONLY change needed to integrate the reversal strategy.
-            try:
-                import sys, os
-                _rev_path = os.path.join(
-                    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                    "Multi Timeframe RSI Reversal"
-                )
-                if _rev_path not in sys.path:
-                    sys.path.insert(0, _rev_path)
-                import rev_handlers as rev
-                self._bot_app.add_handler(CommandHandler("revhelp",      rev.cmd_help))
-                self._bot_app.add_handler(CommandHandler("revstatus",    rev.cmd_status))
-                self._bot_app.add_handler(CommandHandler("revscan",      rev.cmd_scan))
-                self._bot_app.add_handler(CommandHandler("revchart",     rev.cmd_chart))
-                self._bot_app.add_handler(CommandHandler("revsize",      rev.cmd_size))
-                self._bot_app.add_handler(CommandHandler("revblackout",  rev.cmd_blackout))
-                self._bot_app.add_handler(CommandHandler("revportfolio", rev.cmd_portfolio))
-                self._bot_app.add_handler(CommandHandler("revhistory",   rev.cmd_history))
-                self._bot_app.add_handler(CommandHandler("revreset",     rev.cmd_reset))
-                self._bot_app.add_handler(CommandHandler("revtoggle",    rev.cmd_toggle))
-                print("[info] RSI Reversal /rev* commands registered on shared bot.")
-            except Exception as rev_exc:
-                print(f"[warn] Could not load reversal handlers: {rev_exc}")
-                print("[warn] RSI Reversal /rev* commands will not be available.")
 
             self._bot_app.run_polling(drop_pending_updates=True)
         except Exception as e:
