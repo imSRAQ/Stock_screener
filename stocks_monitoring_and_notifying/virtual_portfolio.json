@@ -1,6 +1,34 @@
 {
-    "cash_balance": 506440.80000000005,
-    "positions": {},
+    "cash_balance": 265892.9000000001,
+    "positions": {
+        "SSWL": {
+            "entry_price": 339.0,
+            "quantity": 201,
+            "initial_sl": 314.15,
+            "trailing_sl": 314.15,
+            "highest_price": 339.0,
+            "target_price": 376.27500000000003,
+            "partial_taken": false
+        },
+        "CARTRADE": {
+            "entry_price": 3017.1,
+            "quantity": 26,
+            "initial_sl": 2827.02,
+            "trailing_sl": 2827.02,
+            "highest_price": 3017.1,
+            "target_price": 3302.22,
+            "partial_taken": false
+        },
+        "ACE": {
+            "entry_price": 1132.1,
+            "quantity": 83,
+            "initial_sl": 1072.22,
+            "trailing_sl": 1072.22,
+            "highest_price": 1132.1,
+            "target_price": 1221.9199999999996,
+            "partial_taken": false
+        }
+    },
     "trade_history": [
         {
             "symbol": "YASHO",
