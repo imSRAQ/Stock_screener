@@ -211,6 +211,7 @@ class TelegramNotifier:
             "/entry RELIANCE 2500 10 2400\n"
             "/chart INFY\n\n"
             "<b>System Controls:</b>\n"
+            "/scan — Trigger a full Uptrend scan manually\n"
             "/status — View market health & config\n"
             "/hourly on|off — Toggle hourly scans\n\n"
             "<b>🎮 Virtual Auto-Trader:</b>\n"
@@ -256,6 +257,27 @@ class TelegramNotifier:
         status = mh.get("status_text", "UNKNOWN")
         hourly = "ON" if self.config.hourly_enabled else "OFF"
         await update.message.reply_text(f"System Status:\n{status}\nHourly Scans: {hourly}")
+
+    async def _cmd_scan(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Manually trigger a full scan and send the updated dashboard."""
+        await update.message.reply_text(
+            "⏳ <b>Manual Uptrend Scan started...</b>\n"
+            "This may take a few minutes. I will notify you when done.",
+            parse_mode="HTML"
+        )
+
+        def _run_scan_thread():
+            try:
+                from scheduler import Scheduler
+                sched = Scheduler()
+                sched.run_full()
+            except SystemExit:
+                self.send_message("❌ <b>Scan failed:</b> Configuration error (check API keys).")
+            except Exception as exc:
+                self.send_message(f"❌ <b>Scan failed:</b> {exc}")
+
+        import threading
+        threading.Thread(target=_run_scan_thread, daemon=True).start()
 
     async def _cmd_hourly(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         if not context.args or context.args[0].lower() not in ["on", "off"]:
@@ -453,6 +475,7 @@ class TelegramNotifier:
             self._bot_app.add_handler(CommandHandler("unwatch", self._cmd_unwatch))
             self._bot_app.add_handler(CommandHandler("watchlist", self._cmd_watchlist))
             self._bot_app.add_handler(CommandHandler("status", self._cmd_status))
+            self._bot_app.add_handler(CommandHandler("scan",   self._cmd_scan))
             self._bot_app.add_handler(CommandHandler("hourly", self._cmd_hourly))
             self._bot_app.add_handler(CommandHandler("entry", self._cmd_entry))
             self._bot_app.add_handler(CommandHandler("exit", self._cmd_exit))
