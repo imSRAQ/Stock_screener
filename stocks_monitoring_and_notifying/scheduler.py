@@ -176,13 +176,15 @@ class Scheduler:
             fetcher = DataFetcher()
             # Fetch latest data for virtual positions (needs just a few days for current price/ATR)
             v_data = fetcher.fetch_all_universe(period_days=20, symbols=list(v_positions.keys()))
-            for sym, df in v_data.items():
-                if not df.empty:
-                    close = df['Close'].iloc[-1]
-                    # calc simple ATR
-                    high = df['High'].iloc[-1]
-                    low = df['Low'].iloc[-1]
-                    prev_close = df['Close'].iloc[-2] if len(df) > 1 else close
+            for sym, d in v_data.items():
+                closes = d.get('close', [])
+                if len(closes) > 0:
+                    close = float(closes[-1])
+                    highs = d.get('high', [])
+                    lows = d.get('low', [])
+                    high = float(highs[-1]) if len(highs) > 0 else close
+                    low = float(lows[-1]) if len(lows) > 0 else close
+                    prev_close = float(closes[-2]) if len(closes) > 1 else close
                     tr = max(high - low, abs(high - prev_close), abs(low - prev_close))
                     current_prices[sym] = {"price": close, "atr": tr}
 

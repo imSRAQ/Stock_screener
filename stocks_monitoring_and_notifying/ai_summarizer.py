@@ -33,7 +33,7 @@ class AISummarizer:
 
         if self.gemini_key:
             genai.configure(api_key=self.gemini_key)
-        self.gemini_model = genai.GenerativeModel("gemini-3.6-flash")
+        self.gemini_model = genai.GenerativeModel("gemini-1.5-flash-latest")
 
         self.is_configured = any([self.gemini_key, self.groq_key, self.openai_key, self.anthropic_key])
 
@@ -105,7 +105,7 @@ class AISummarizer:
             try:
                 client = OpenAI(api_key=self.groq_key, base_url="https://api.groq.com/openai/v1")
                 response = client.chat.completions.create(
-                    model="groq/compound",
+                    model="llama-3.1-8b-instant",
                     messages=[{"role": "user", "content": prompt}],
                     temperature=0.3
                 )

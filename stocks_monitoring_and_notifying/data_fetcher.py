@@ -226,14 +226,17 @@ class DataFetcher:
     def fetch_all_universe(
         self,
         period_days: int,
+        symbols: list = None,
         progress_callback=None,
     ) -> dict:
-        """Download Bhavcopies and aggregate OHLCV data for ALL symbols.
+        """Download Bhavcopies and aggregate OHLCV data for ALL symbols (or filtered list).
 
         Parameters
         ----------
         period_days : int
             Number of *trading* days of history to fetch.
+        symbols : list, optional
+            If provided, only return data for these symbols.
         progress_callback : callable, optional
             Called as ``callback(current_day, total_days)`` during fetch.
 
@@ -265,7 +268,10 @@ class DataFetcher:
 
             day_str = day.strftime("%Y-%m-%d")
             for entry in rows:
-                records.setdefault(entry["symbol"], []).append(
+                sym = entry["symbol"]
+                if symbols and sym not in symbols:
+                    continue
+                records.setdefault(sym, []).append(
                     (
                         day_str,
                         entry["open"],
@@ -299,6 +305,9 @@ class DataFetcher:
 
         if not result:
             print("[warn] Bhavcopy yielded 0 results (possibly blocked). Falling back to yfinance...")
-            return self._fetch_yfinance_fallback(period_days, progress_callback)
+            res = self._fetch_yfinance_fallback(period_days, progress_callback)
+            if symbols:
+                res = {k: v for k, v in res.items() if k in symbols}
+            return res
 
         return result

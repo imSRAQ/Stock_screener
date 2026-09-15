@@ -2054,5 +2054,61 @@
         "stop_loss": 407.99,
         "ai_summary": "Technical setup: RSI 57.1, ADX 30.1, Slope 0.041. Stop-loss at Rs 407.99.",
         "tv_signal": "STRONG_BUY"
+    },
+    {
+        "symbol": "SHREEJISPG",
+        "date": "2026-09-15",
+        "entry_price": 691.75,
+        "stop_loss": 655.8,
+        "ai_summary": "Bullish \u2013 BUY TV signal, RSI 60.7 and ADX 33.4 indicate solid upward momentum, making a long entry attractive. Set stop\u2011loss at 655.8 and target above current resistance.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "MENONBE",
+        "date": "2026-09-15",
+        "entry_price": 297.5,
+        "stop_loss": 270.39,
+        "ai_summary": "Bullish entry \u2013 BUY signal aligns with RSI 60.2 and ADX 40.1, indicating strong upward momentum; place stop at 270.39 and look for price to stay above.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "ACE",
+        "date": "2026-09-15",
+        "entry_price": 1129.0,
+        "stop_loss": 1068.73,
+        "ai_summary": "Technical setup: RSI 53.3, ADX 27.3, Slope 0.043. Stop-loss at Rs 1068.73.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "ARROWGREEN",
+        "date": "2026-09-15",
+        "entry_price": 813.0,
+        "stop_loss": 761.96,
+        "ai_summary": "Technical setup: RSI 64.9, ADX 26.5, Slope 0.043. Stop-loss at Rs 761.96.",
+        "tv_signal": "STRONG_BUY"
+    },
+    {
+        "symbol": "CARTRADE",
+        "date": "2026-09-15",
+        "entry_price": 3087.9,
+        "stop_loss": 2902.71,
+        "ai_summary": "Technical setup: RSI 58.2, ADX 36.7, Slope 0.042. Stop-loss at Rs 2902.71.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "MACPOWER",
+        "date": "2026-09-15",
+        "entry_price": 1843.0,
+        "stop_loss": 1689.11,
+        "ai_summary": "Technical setup: RSI 53.0, ADX 42.5, Slope 0.042. Stop-loss at Rs 1689.11.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "RUBYMILLS",
+        "date": "2026-09-15",
+        "entry_price": 455.1,
+        "stop_loss": 413.37,
+        "ai_summary": "Technical setup: RSI 64.5, ADX 25.6, Slope 0.041. Stop-loss at Rs 413.37.",
+        "tv_signal": "BUY"
     }
 ]
