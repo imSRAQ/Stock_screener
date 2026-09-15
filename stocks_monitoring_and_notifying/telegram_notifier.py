@@ -153,6 +153,28 @@ class TelegramNotifier:
                 
         self.send_message(msg)
 
+    def send_watchlist_alerts(self, watchlist_alerts: List[Dict]):
+        """Sends dedicated alerts for stocks in the Special Watchlist."""
+        if not watchlist_alerts:
+            return
+
+        msg = "⭐ <b>SPECIAL WATCHLIST ALERTS</b> ⭐\n\n"
+        for item in watchlist_alerts:
+            sym = item.get("symbol", "UNKNOWN")
+            price = item.get("price", 0)
+            status = item.get("status", "NEUTRAL")
+            reason = item.get("reason", "")
+            rsi = item.get("rsi", 0)
+            adx = item.get("adx", 0)
+            sl = item.get("stop_loss", 0)
+            
+            msg += f"<b>{sym}</b> | ₹{price:.2f}\n"
+            msg += f"Status: <b>{status}</b> | RSI: {rsi:.1f} | ADX: {adx:.1f}\n"
+            msg += f"Suggested SL: ₹{sl:.2f}\n"
+            msg += f"<i>{reason}</i>\n\n"
+
+        self.send_message(msg)
+
     def send_weekly_new_entries(self, new_entries: List[Dict], market_health: Dict):
         """Sends the weekly diff of new entries."""
         if not new_entries:

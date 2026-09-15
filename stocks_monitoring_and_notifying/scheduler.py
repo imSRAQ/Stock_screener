@@ -284,7 +284,92 @@ class Scheduler:
         alerts = self.portfolio.check_trailing_stops(current_prices, self.config.portfolio)
         self.notifier.send_trailing_stop_alerts(alerts)
         
+        # Priority Watchlist Scan
+        wl_alerts = self._analyze_special_watchlist(universe_data)
+        self.notifier.send_watchlist_alerts(wl_alerts)
+
         self._run_sentiment_and_notify(top_results, market_health)
+
+    def _analyze_special_watchlist(self, universe_data: dict) -> list:
+        """Analyzes stocks in user's Special Watchlist against technical rules and produces priority alerts."""
+        watched_symbols = self.watchlist_mgr.get_all()
+        if not watched_symbols:
+            return []
+
+        alerts = []
+        filters = self.config.filters
+        advanced = self.config.advanced
+        
+        analyzer = UptrendAnalyzer(
+            sma_short=filters.get("sma_short", 50),
+            sma_long=filters.get("sma_long", 200),
+            rsi_min=filters.get("rsi_min", 40.0),
+            rsi_max=filters.get("rsi_max", 65.0),
+            adx_min=filters.get("adx_min", 25.0),
+            volume_ratio_min=filters.get("volume_ratio_min", 1.0),
+            atr_multiplier=filters.get("atr_stop_loss_multiplier", 1.5),
+            multi_timeframe=advanced.get("multi_timeframe_alignment", True),
+            use_volume_profile_stop=advanced.get("use_volume_profile_stop", True)
+        )
+
+        import numpy as np
+        for raw_sym in watched_symbols:
+            clean_sym = raw_sym.replace(".NS", "").upper().strip()
+            if clean_sym not in universe_data:
+                continue
+
+            stock_data = {clean_sym: universe_data[clean_sym]}
+            res = analyzer.filter_and_rank(stock_data, lookback_days=filters.get("lookback_days", 90))
+            
+            closes = universe_data[clean_sym].get("close", [])
+            if len(closes) == 0:
+                continue
+            curr_price = float(closes[-1])
+            
+            if res:
+                item = res[0]
+                alerts.append({
+                    "symbol": clean_sym,
+                    "price": curr_price,
+                    "status": "BUY / STRONG BULLISH 🟢",
+                    "reason": f"Matches Uptrend Strategy! Slope: {item.get('slope', 0):.3f}, RSI: {item.get('rsi', 0):.1f}, ADX: {item.get('adx', 0):.1f}",
+                    "rsi": item.get("rsi", 0),
+                    "adx": item.get("adx", 0),
+                    "stop_loss": item.get("stop_loss", 0)
+                })
+            else:
+                sma_short = filters.get("sma_short", 50)
+                sma50 = float(np.mean(closes[-sma_short:])) if len(closes) >= sma_short else curr_price
+                
+                delta = np.diff(closes)
+                gain = np.where(delta > 0, delta, 0)
+                loss = np.where(delta < 0, -delta, 0)
+                avg_gain = np.mean(gain[-14:]) if len(gain) >= 14 else 0
+                avg_loss = np.mean(loss[-14:]) if len(loss) >= 14 else 0.001
+                rs = avg_gain / (avg_loss + 1e-9)
+                rsi_val = 100.0 - (100.0 / (1.0 + rs))
+
+                if curr_price < sma50:
+                    status = "BEARISH / BELOW 50-SMA 🔴"
+                    reason = f"Trading below 50-SMA (₹{sma50:.2f}). Support level broken."
+                elif rsi_val > 70:
+                    status = "OVERBOUGHT 🟡"
+                    reason = f"RSI is high at {rsi_val:.1f}. Caution on new entries."
+                else:
+                    status = "CONSOLIDATING / HOLDING 🟡"
+                    reason = f"Holding above 50-SMA (₹{sma50:.2f}). Awaiting volume breakout."
+
+                alerts.append({
+                    "symbol": clean_sym,
+                    "price": curr_price,
+                    "status": status,
+                    "reason": reason,
+                    "rsi": round(rsi_val, 1),
+                    "adx": 0.0,
+                    "stop_loss": round(sma50 * 0.97, 2)
+                })
+
+        return alerts
 
     def run_weekly(self):
         """Finds newly entered stocks compared to last week."""
@@ -366,6 +451,10 @@ class Scheduler:
         alerts = self.portfolio.check_trailing_stops(current_prices, self.config.portfolio)
         self.notifier.send_trailing_stop_alerts(alerts)
         
+        # Priority Watchlist Scan
+        wl_alerts = self._analyze_special_watchlist(universe_data)
+        self.notifier.send_watchlist_alerts(wl_alerts)
+
         self._run_sentiment_and_notify(top_results, market_health)
 
 
