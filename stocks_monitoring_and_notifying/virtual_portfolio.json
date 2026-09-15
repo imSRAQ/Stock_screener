@@ -1,51 +1,41 @@
 {
-    "cash_balance": 74098.30000000002,
-    "positions": {
-        "YASHO": {
-            "entry_price": 4129.5,
-            "quantity": 14,
-            "initial_sl": 3793.6,
-            "trailing_sl": 3793.6,
-            "highest_price": 4129.5,
-            "target_price": 4633.35,
-            "partial_taken": false
+    "cash_balance": 506440.80000000005,
+    "positions": {},
+    "trade_history": [
+        {
+            "symbol": "YASHO",
+            "type": "SELL (AI Caution)",
+            "exit_price": 4187.5,
+            "pnl": 812.0,
+            "date": "2026-09-15 23:11"
         },
-        "SONACOMS": {
-            "entry_price": 782.65,
-            "quantity": 152,
-            "initial_sl": 749.9,
-            "trailing_sl": 749.9,
-            "highest_price": 782.65,
-            "target_price": 831.775,
-            "partial_taken": false
+        {
+            "symbol": "SONACOMS",
+            "type": "SELL (AI Caution)",
+            "exit_price": 788.0,
+            "pnl": 813.2000000000035,
+            "date": "2026-09-15 23:11"
         },
-        "HNDFDS": {
-            "entry_price": 622.8,
-            "quantity": 157,
-            "initial_sl": 591.15,
-            "trailing_sl": 591.15,
-            "highest_price": 622.8,
-            "target_price": 670.2749999999999,
-            "partial_taken": false
+        {
+            "symbol": "HNDFDS",
+            "type": "SELL (AI Caution)",
+            "exit_price": 618.7,
+            "pnl": -643.6999999999857,
+            "date": "2026-09-15 23:11"
         },
-        "CARTRADE": {
-            "entry_price": 2932.3,
-            "quantity": 28,
-            "initial_sl": 2759.68,
-            "trailing_sl": 2759.68,
-            "highest_price": 2932.3,
-            "target_price": 3191.2300000000005,
-            "partial_taken": false
+        {
+            "symbol": "CARTRADE",
+            "type": "SELL (AI Caution)",
+            "exit_price": 3087.9,
+            "pnl": 4356.799999999997,
+            "date": "2026-09-15 23:11"
         },
-        "PARAS": {
-            "entry_price": 1413.1,
-            "quantity": 49,
-            "initial_sl": 1311.79,
-            "trailing_sl": 1311.79,
-            "highest_price": 1413.1,
-            "target_price": 1565.0649999999998,
-            "partial_taken": false
+        {
+            "symbol": "PARAS",
+            "type": "SELL (AI Caution)",
+            "exit_price": 1435.6,
+            "pnl": 1102.5,
+            "date": "2026-09-15 23:11"
         }
-    },
-    "trade_history": []
+    ]
 }
