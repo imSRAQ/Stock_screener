@@ -96,7 +96,10 @@ class AISummarizer:
             try:
                 time.sleep(3)  # basic rate-limit politeness
                 response = self.gemini_model.generate_content(prompt)
-                return self._parse_batch_response(response.text.strip(), batch)
+                response_text = getattr(response, 'text', None)
+                if response_text:
+                    return self._parse_batch_response(response_text.strip(), batch)
+                print("[warn] Gemini returned empty response. Falling back...")
             except Exception as e:
                 print(f"[warn] Gemini failed: {e}. Falling back...")
 
@@ -109,7 +112,10 @@ class AISummarizer:
                     messages=[{"role": "user", "content": prompt}],
                     temperature=0.3
                 )
-                return self._parse_batch_response(response.choices[0].message.content.strip(), batch)
+                content = response.choices[0].message.content if response.choices else None
+                if content:
+                    return self._parse_batch_response(content.strip(), batch)
+                print("[warn] Groq returned empty response. Falling back...")
             except Exception as e:
                 print(f"[warn] Groq failed: {e}. Falling back...")
 
@@ -122,7 +128,10 @@ class AISummarizer:
                     messages=[{"role": "user", "content": prompt}],
                     temperature=0.3
                 )
-                return self._parse_batch_response(response.choices[0].message.content.strip(), batch)
+                content = response.choices[0].message.content if response.choices else None
+                if content:
+                    return self._parse_batch_response(content.strip(), batch)
+                print("[warn] OpenAI returned empty response. Falling back...")
             except Exception as e:
                 print(f"[warn] OpenAI failed: {e}. Falling back...")
 
@@ -136,7 +145,10 @@ class AISummarizer:
                     messages=[{"role": "user", "content": prompt}],
                     temperature=0.3
                 )
-                return self._parse_batch_response(response.content[0].text.strip(), batch)
+                content = response.content[0].text if response.content else None
+                if content:
+                    return self._parse_batch_response(content.strip(), batch)
+                print("[warn] Anthropic returned empty response. Falling back...")
             except Exception as e:
                 print(f"[warn] Anthropic failed: {e}. Falling back...")
 

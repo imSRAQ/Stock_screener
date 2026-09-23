@@ -27,12 +27,12 @@
     "status": "OK"
   },
   "UNIPARTS": {
-    "eps": 39.93,
+    "eps": 39.94,
     "revenue_growth": 0.269,
     "debt_to_equity": 17.771,
-    "market_cap": 39383703552,
+    "market_cap": 39063175168,
     "sector": "Industrials",
-    "fetched_at": "2026-08-28T20:04:14.784441",
+    "fetched_at": "2026-09-16T00:34:34.101943",
     "status": "OK"
   },
   "SHREEJISPG": {
@@ -63,12 +63,12 @@
     "status": "OK"
   },
   "SANSERA": {
-    "eps": 51.88,
+    "eps": 52.04,
     "revenue_growth": 0.333,
     "debt_to_equity": 19.023,
-    "market_cap": 240815374336,
+    "market_cap": 241607884800,
     "sector": "Consumer Cyclical",
-    "fetched_at": "2026-08-28T20:04:16.668143",
+    "fetched_at": "2026-09-16T00:34:37.146948",
     "status": "OK"
   },
   "INDIGOPNTS": {
@@ -84,9 +84,9 @@
     "eps": 4.3,
     "revenue_growth": -0.018,
     "debt_to_equity": 9.979,
-    "market_cap": 35031764992,
+    "market_cap": 36594851840,
     "sector": "Consumer Cyclical",
-    "fetched_at": "2026-08-28T20:04:17.725425",
+    "fetched_at": "2026-09-16T00:34:40.166463",
     "status": "OK"
   },
   "GHCLTEXTIL": {
@@ -189,12 +189,12 @@
     "status": "OK"
   },
   "CRAFTSMAN": {
-    "eps": 193.98,
+    "eps": 193.71,
     "revenue_growth": 0.363,
     "debt_to_equity": 111.011,
-    "market_cap": 290784968704,
+    "market_cap": 290288041984,
     "sector": "Consumer Cyclical",
-    "fetched_at": "2026-08-28T20:04:24.174919",
+    "fetched_at": "2026-09-16T00:34:45.368784",
     "status": "OK"
   },
   "SONACOMS": {
@@ -216,12 +216,12 @@
     "status": "OK"
   },
   "SSWL": {
-    "eps": 13.48,
+    "eps": 13.49,
     "revenue_growth": 0.272,
     "debt_to_equity": 45.898,
-    "market_cap": 46471839744,
+    "market_cap": 53312868352,
     "sector": "Consumer Cyclical",
-    "fetched_at": "2026-08-28T20:04:25.618658",
+    "fetched_at": "2026-09-16T00:34:38.255740",
     "status": "OK"
   },
   "DIACABS": {
@@ -342,12 +342,12 @@
     "status": "OK"
   },
   "UNIMECH": {
-    "eps": 14.11,
+    "eps": 14.17,
     "revenue_growth": 0.709,
     "debt_to_equity": 17.186,
-    "market_cap": 76510789632,
+    "market_cap": 78312718336,
     "sector": "Industrials",
-    "fetched_at": "2026-08-28T20:04:32.672144",
+    "fetched_at": "2026-09-16T00:34:36.086990",
     "status": "OK"
   },
   "ACE": {
@@ -462,9 +462,9 @@
     "eps": 3.92,
     "revenue_growth": 0.496,
     "debt_to_equity": 110.033,
-    "market_cap": 121389957120,
+    "market_cap": 126584791040,
     "sector": "Consumer Cyclical",
-    "fetched_at": "2026-08-28T20:04:38.818457",
+    "fetched_at": "2026-09-16T00:34:41.544060",
     "status": "OK"
   },
   "JINDWORLD": {
@@ -828,21 +828,21 @@
     "status": "OK"
   },
   "KABRAEXTRU": {
-    "eps": 0.17,
+    "eps": 0.14,
     "revenue_growth": -0.089,
     "debt_to_equity": 32.04,
-    "market_cap": 19901292544,
+    "market_cap": 22762070016,
     "sector": "Industrials",
-    "fetched_at": "2026-09-03T07:23:59.202238",
+    "fetched_at": "2026-09-16T00:34:39.227495",
     "status": "OK"
   },
   "SUNDRMFAST": {
-    "eps": 29.03,
+    "eps": 29.08,
     "revenue_growth": 0.204,
     "debt_to_equity": 14.532,
-    "market_cap": 253687988224,
+    "market_cap": 259991846912,
     "sector": "Consumer Cyclical",
-    "fetched_at": "2026-09-03T07:23:59.849469",
+    "fetched_at": "2026-09-16T00:34:43.997694",
     "status": "OK"
   },
   "QUESS": {
@@ -951,6 +951,69 @@
     "market_cap": 94191681536,
     "sector": "Basic Materials",
     "fetched_at": "2026-09-15T23:07:34.890413",
+    "status": "OK"
+  },
+  "IRISDOREME": {
+    "eps": 0.85,
+    "revenue_growth": 0.263,
+    "debt_to_equity": 24.205,
+    "market_cap": 11056355328,
+    "sector": "Consumer Cyclical",
+    "fetched_at": "2026-09-16T00:34:32.864246",
+    "status": "OK"
+  },
+  "CYIENTDLM": {
+    "eps": 10.31,
+    "revenue_growth": 0.343,
+    "debt_to_equity": 17.021,
+    "market_cap": 70054952960,
+    "sector": "Industrials",
+    "fetched_at": "2026-09-16T00:34:35.155493",
+    "status": "OK"
+  },
+  "RPEL": {
+    "eps": 13.65,
+    "revenue_growth": 0.487,
+    "debt_to_equity": 2.213,
+    "market_cap": 74503774208,
+    "sector": "Basic Materials",
+    "fetched_at": "2026-09-16T00:34:42.450842",
+    "status": "OK"
+  },
+  "COMSYN": {
+    "eps": 7.09,
+    "revenue_growth": 0.206,
+    "debt_to_equity": 72.4,
+    "market_cap": 11690299392,
+    "sector": "Consumer Cyclical",
+    "fetched_at": "2026-09-16T00:34:46.843393",
+    "status": "OK"
+  },
+  "EIMCOELECO": {
+    "eps": 68.6,
+    "revenue_growth": 0.147,
+    "debt_to_equity": 0.93,
+    "market_cap": 12933872640,
+    "sector": "Industrials",
+    "fetched_at": "2026-09-16T00:34:48.088394",
+    "status": "OK"
+  },
+  "WELCORP": {
+    "eps": 87.52,
+    "revenue_growth": 0.149,
+    "debt_to_equity": 25.042,
+    "market_cap": 636396699648,
+    "sector": "Basic Materials",
+    "fetched_at": "2026-09-16T00:34:49.453951",
+    "status": "OK"
+  },
+  "WELSPUNLIV": {
+    "eps": 2.91,
+    "revenue_growth": 0.237,
+    "debt_to_equity": 46.501,
+    "market_cap": 191157354496,
+    "sector": "Consumer Cyclical",
+    "fetched_at": "2026-09-16T00:34:51.602279",
     "status": "OK"
   }
 }

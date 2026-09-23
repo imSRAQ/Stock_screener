@@ -53,7 +53,9 @@ class PortfolioManager:
             print(f"[warn] Git sync failed for portfolio: {e}")
 
     def add_position(self, symbol: str, entry_price: float, quantity: int, initial_sl: float) -> str:
-        symbol = symbol.upper().strip()
+        if not symbol:
+            return "Error: Symbol is required."
+        symbol = str(symbol).upper().strip()
         if symbol in self.portfolio:
             return f"{symbol} is already in the portfolio. Use /exit first to close it."
             
@@ -73,7 +75,9 @@ class PortfolioManager:
         return f"✅ Added {symbol} at ₹{entry_price} (Qty: {quantity}). Initial SL: ₹{initial_sl}."
 
     def remove_position(self, symbol: str) -> str:
-        symbol = symbol.upper().strip()
+        if not symbol:
+            return "Error: Symbol is required."
+        symbol = str(symbol).upper().strip()
         if symbol in self.portfolio:
             del self.portfolio[symbol]
             self.save()

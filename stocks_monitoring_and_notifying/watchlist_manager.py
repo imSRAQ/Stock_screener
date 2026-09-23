@@ -42,7 +42,9 @@ class WatchlistManager:
 
     def add(self, symbol: str) -> bool:
         """Adds a symbol to the watchlist. Returns True if added, False if already present."""
-        symbol = symbol.upper().strip()
+        if not symbol:
+            return False
+        symbol = str(symbol).upper().strip()
         if not symbol.endswith(".NS"):
             symbol += ".NS"
             
@@ -54,7 +56,9 @@ class WatchlistManager:
 
     def remove(self, symbol: str) -> bool:
         """Removes a symbol from the watchlist. Returns True if removed."""
-        symbol = symbol.upper().strip()
+        if not symbol:
+            return False
+        symbol = str(symbol).upper().strip()
         if not symbol.endswith(".NS"):
             symbol += ".NS"
             

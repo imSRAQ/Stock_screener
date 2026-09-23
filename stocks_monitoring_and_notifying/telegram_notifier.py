@@ -270,10 +270,18 @@ class TelegramNotifier:
             try:
                 from scheduler import Scheduler
                 sched = Scheduler()
-                sched.run_full()
+                sched.run_full(force=True)
+                # Attempt to push updated dashboard & state to GitHub
+                try:
+                    import bot_worker
+                    bot_worker._push_latest()
+                except Exception as push_err:
+                    print(f"[warn] Git push after manual scan: {push_err}")
             except SystemExit:
                 self.send_message("❌ <b>Scan failed:</b> Configuration error (check API keys).")
             except Exception as exc:
+                import traceback
+                traceback.print_exc()
                 self.send_message(f"❌ <b>Scan failed:</b> {exc}")
 
         import threading

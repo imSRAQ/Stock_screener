@@ -51,7 +51,7 @@ def _configure_git():
             ["git", "remote", "get-url", "origin"],
             cwd=REPO_ROOT, capture_output=True, text=True
         )
-        remote = result.stdout.strip()
+        remote = (result.stdout or "").strip()
         if "github.com" in remote and "x-access-token" not in remote:
             authed = remote.replace("https://github.com/",
                                     f"https://x-access-token:{token}@github.com/")
@@ -70,7 +70,7 @@ def _pull_latest():
     try:
         r = subprocess.run(["git", "pull", "--rebase"],
                            cwd=REPO_ROOT, capture_output=True, text=True, timeout=30)
-        print(f"[info] Git pull: {r.stdout.strip() or 'already up to date'}")
+        print(f"[info] Git pull: {(r.stdout or '').strip() or 'already up to date'}")
     except Exception as exc:
         print(f"[warn] Git pull failed: {exc}")
 

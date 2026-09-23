@@ -195,9 +195,9 @@ class Scheduler:
         else:
             self.notifier.send_scan_results(final_entries, final_exits, market_health)
 
-    def run_full(self):
+    def run_full(self, force: bool = False):
         """Executes the full daily scan."""
-        if self._is_holiday():
+        if not force and self._is_holiday():
             print("[info] Today is a holiday. Skipping full scan.")
             return
 
@@ -314,7 +314,9 @@ class Scheduler:
 
         import numpy as np
         for raw_sym in watched_symbols:
-            clean_sym = raw_sym.replace(".NS", "").upper().strip()
+            if not raw_sym:
+                continue
+            clean_sym = str(raw_sym).replace(".NS", "").upper().strip()
             if clean_sym not in universe_data:
                 continue
 

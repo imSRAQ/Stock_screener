@@ -116,7 +116,7 @@ class DataFetcher:
 
         # Parse CSV
         reader = csv.DictReader(io.StringIO(raw_text))
-        headers = [h.strip().upper() for h in reader.fieldnames or []]
+        headers = [h.strip().upper() for h in (reader.fieldnames or []) if h]
         reader.fieldnames = headers
 
         # Detect column names (newer UDiFF vs older format)
@@ -143,11 +143,15 @@ class DataFetcher:
         rows = []
         for row in reader:
             # Filter to equity series only
-            if series_col in row and row[series_col].strip() not in equity_series:
+            s_val = (row.get(series_col) or "").strip()
+            if series_col in row and s_val not in equity_series:
                 continue
             try:
+                sym_val = (row.get(sym_col) or "").strip()
+                if not sym_val:
+                    continue
                 entry = {
-                    "symbol": row[sym_col].strip(),
+                    "symbol": sym_val,
                     "open": float(row.get(open_col, 0) or 0),
                     "high": float(row.get(high_col, 0) or 0),
                     "low": float(row.get(low_col, 0) or 0),

@@ -2110,5 +2110,101 @@
         "stop_loss": 413.37,
         "ai_summary": "Technical setup: RSI 64.5, ADX 25.6, Slope 0.041. Stop-loss at Rs 413.37.",
         "tv_signal": "BUY"
+    },
+    {
+        "symbol": "UNIPARTS",
+        "date": "2026-09-16",
+        "entry_price": 865.7,
+        "stop_loss": 816.25,
+        "ai_summary": "AI summary unavailable (all providers failed or exhausted rate limits).",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "CYIENTDLM",
+        "date": "2026-09-16",
+        "entry_price": 882.7,
+        "stop_loss": 816.86,
+        "ai_summary": "AI summary unavailable (all providers failed or exhausted rate limits).",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "UNIMECH",
+        "date": "2026-09-16",
+        "entry_price": 1538.5,
+        "stop_loss": 1436.25,
+        "ai_summary": "AI summary unavailable (all providers failed or exhausted rate limits).",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "SHREEJISPG",
+        "date": "2026-09-16",
+        "entry_price": 684.0,
+        "stop_loss": 644.64,
+        "ai_summary": "AI summary unavailable (all providers failed or exhausted rate limits).",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "MENONBE",
+        "date": "2026-09-16",
+        "entry_price": 304.35,
+        "stop_loss": 276.51,
+        "ai_summary": "AI summary unavailable (all providers failed or exhausted rate limits).",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "SSWL",
+        "date": "2026-09-16",
+        "entry_price": 339.0,
+        "stop_loss": 314.15,
+        "ai_summary": "Technical setup: RSI 53.6, ADX 42.4, Slope 0.044. Stop-loss at Rs 314.15.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "ACE",
+        "date": "2026-09-16",
+        "entry_price": 1132.1,
+        "stop_loss": 1072.22,
+        "ai_summary": "Technical setup: RSI 54.0, ADX 26.6, Slope 0.043. Stop-loss at Rs 1072.22.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "SUNDRMFAST",
+        "date": "2026-09-16",
+        "entry_price": 1237.3,
+        "stop_loss": 1173.94,
+        "ai_summary": "Technical setup: RSI 60.1, ADX 53.1, Slope 0.043. Stop-loss at Rs 1173.94.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "EIMCOELECO",
+        "date": "2026-09-16",
+        "entry_price": 2242.2,
+        "stop_loss": 2115.63,
+        "ai_summary": "Technical setup: RSI 59.6, ADX 48.0, Slope 0.042. Stop-loss at Rs 2115.63.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "MACPOWER",
+        "date": "2026-09-16",
+        "entry_price": 1882.3,
+        "stop_loss": 1721.85,
+        "ai_summary": "Technical setup: RSI 55.8, ADX 40.8, Slope 0.042. Stop-loss at Rs 1721.85.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "WELSPUNLIV",
+        "date": "2026-09-16",
+        "entry_price": 201.63,
+        "stop_loss": 190.69,
+        "ai_summary": "Technical setup: RSI 61.7, ADX 52.0, Slope 0.042. Stop-loss at Rs 190.69.",
+        "tv_signal": "BUY"
+    },
+    {
+        "symbol": "CARTRADE",
+        "date": "2026-09-16",
+        "entry_price": 3017.1,
+        "stop_loss": 2827.02,
+        "ai_summary": "Technical setup: RSI 53.0, ADX 36.7, Slope 0.042. Stop-loss at Rs 2827.02.",
+        "tv_signal": "BUY"
     }
 ]
