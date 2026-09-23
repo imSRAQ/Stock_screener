@@ -178,6 +178,19 @@ def main():
     except Exception as e:
         print(f"[warn] Failed to start APScheduler: {e}. Please ensure 'apscheduler' and 'pytz' are in requirements.txt.")
 
+    # Send a startup ping to confirm bot is live on Render
+    try:
+        notifier.send_message(
+            "🚀 <b>NSE Bot is LIVE on Render!</b>\n\n"
+            "✅ Telegram connection: OK\n"
+            "✅ Scheduler: Running\n\n"
+            f"📅 Full scan scheduled at: {config.schedule.get('full_scan_time_ist', '08:00')} IST (Mon–Fri)\n"
+            "📡 Hourly scans: 10:00–16:00 IST (Mon–Fri)\n\n"
+            "Send /help to see all available commands."
+        )
+    except Exception as e:
+        print(f"[warn] Failed to send startup ping: {e}")
+
     print("[info] All systems go. Telegram bot is listening 24/7...")
     notifier._run_bot_loop()  # blocks forever
 

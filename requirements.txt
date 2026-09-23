@@ -2,7 +2,6 @@ numpy<2
 pandas
 yfinance>=0.2.40
 requests
-PyQt6
 matplotlib
 google-generativeai
 openai
@@ -12,3 +11,4 @@ tradingview-ta
 apscheduler
 pytz
 holidays
+groq

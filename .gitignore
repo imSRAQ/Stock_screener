@@ -1,7 +1,13 @@
 __pycache__/*
 *.pyc
 
-*.json
+# Large generated data files (bot syncs these via git push at runtime)
+stocks_monitoring_and_notifying/latest_universe_data.json
+stocks_monitoring_and_notifying/universe_snapshot.json
+stocks_monitoring_and_notifying/universe_snapshot_prev.json
+
+# Keep these tracked so they persist across Render deployments
+# (portfolio.json, watchlist.json, config is via env vars)
 *.csv
 !data/*.csv
 !output/sample_output.json

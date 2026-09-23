@@ -57,12 +57,17 @@ class PortfolioManager:
         if symbol in self.portfolio:
             return f"{symbol} is already in the portfolio. Use /exit first to close it."
             
+        risk = entry_price - initial_sl
+        target_price = entry_price + (1.5 * risk) if risk > 0 else 0
+        
         self.portfolio[symbol] = {
             "entry_price": entry_price,
             "quantity": quantity,
             "initial_sl": initial_sl,
             "trailing_sl": initial_sl,
-            "highest_price": entry_price
+            "highest_price": entry_price,
+            "target_price": target_price,
+            "partial_taken": False
         }
         self.save()
         return f"✅ Added {symbol} at ₹{entry_price} (Qty: {quantity}). Initial SL: ₹{initial_sl}."
@@ -115,6 +120,27 @@ class PortfolioManager:
             entry = pos["entry_price"]
             highest = pos["highest_price"]
             
+            # Check Target (1.5x Risk) for 50% partial exit
+            if not pos.get("partial_taken", False) and pos.get("target_price", 0) > 0 and current_price >= pos["target_price"]:
+                half_qty = pos["quantity"] // 2
+                if half_qty > 0:
+                    profit_loss = (current_price - entry) * half_qty
+                    pos["quantity"] -= half_qty
+                    pos["partial_taken"] = True
+                    # Trail stop to entry (breakeven) for the remaining 50%
+                    pos["trailing_sl"] = max(pos["trailing_sl"], entry)
+                    portfolio_updated = True
+                    
+                    alerts.append({
+                        "type": "TARGET_HIT",
+                        "symbol": symbol,
+                        "price": current_price,
+                        "sold_qty": half_qty,
+                        "remaining_qty": pos["quantity"],
+                        "pnl": profit_loss,
+                        "new_sl": pos["trailing_sl"]
+                    })
+                    
             # Check if stop loss is hit
             if current_price <= pos["trailing_sl"]:
                 profit_loss = (current_price - entry) * pos["quantity"]
