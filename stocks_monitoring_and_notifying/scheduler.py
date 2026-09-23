@@ -85,7 +85,7 @@ class Scheduler:
     # batch size = 5 stocks/req, so 15 stocks = 3 API calls).
     MAX_AI_STOCKS = 15
 
-    def _run_sentiment_and_notify(self, results: list, market_health: dict, is_weekly=False):
+    def _run_sentiment_and_notify(self, results: list, market_health: dict, is_weekly=False, progress_callback=None):
         """Runs the sentiment + AI pipeline and sends Telegram messages."""
         if not results:
             print("[info] No results to process.")
@@ -93,7 +93,12 @@ class Scheduler:
                 self.notifier.send_weekly_new_entries([], market_health)
             else:
                 self.notifier.send_scan_results([], [], market_health)
+            if progress_callback:
+                progress_callback(100, "Scan complete! No matching signals today.")
             return
+
+        if progress_callback:
+            progress_callback(88, f"Analyzing news & sentiment for {len(results)} stocks...")
 
         print(f"[info] Analyzing sentiment for {len(results)} stocks...")
         
@@ -117,6 +122,8 @@ class Scheduler:
             ai_candidates.append({"data": item, "sentiment": sentiment})
 
         # Batch AI call (uses ~3 API requests for 15 stocks)
+        if progress_callback:
+            progress_callback(92, f"Generating AI summaries for top candidates...")
         print(f"[info] Generating AI summaries for top {len(ai_candidates)} stocks (batch mode)...")
         ai_results = ai_summarizer.generate_batch_summaries(ai_candidates)
 
@@ -155,6 +162,8 @@ class Scheduler:
                 final_exits.append(payload)
 
         # --- NEW DASHBOARD & HISTORY GENERATOR ---
+        if progress_callback:
+            progress_callback(96, "Generating HTML dashboard & updating virtual positions...")
         from history_manager import HistoryManager
         from dashboard_generator import DashboardGenerator
         from paper_trader import PaperTrader
@@ -190,16 +199,26 @@ class Scheduler:
 
         pt.execute_trades(final_entries, final_exits, current_prices, self.notifier)
         
+        if progress_callback:
+            progress_callback(99, "Sending scan notifications to Telegram...")
         if is_weekly:
             self.notifier.send_weekly_new_entries(final_entries, market_health)
         else:
             self.notifier.send_scan_results(final_entries, final_exits, market_health)
 
-    def run_full(self, force: bool = False):
+        if progress_callback:
+            progress_callback(100, "Scan complete!")
+
+    def run_full(self, force: bool = False, progress_callback=None):
         """Executes the full daily scan."""
         if not force and self._is_holiday():
             print("[info] Today is a holiday. Skipping full scan.")
+            if progress_callback:
+                progress_callback(100, "Market closed (NSE Holiday / Weekend).")
             return
+
+        if progress_callback:
+            progress_callback(5, "Checking market health & Nifty 50 trend...")
 
         print("[info] Starting full daily scan...")
         
@@ -210,8 +229,17 @@ class Scheduler:
         lookback = filters.get("lookback_days", 90)
         fetch_days = max(lookback, filters.get("sma_long", 200)) + 20
         
+        if progress_callback:
+            progress_callback(10, f"Fetching NSE Bhavcopies ({fetch_days} trading days)...")
+
         fetcher = DataFetcher()
-        universe_data = fetcher.fetch_all_universe(period_days=fetch_days)
+
+        def _fetch_prog(cur, total):
+            if progress_callback and total > 0:
+                pct = 10 + int((cur / total) * 50)
+                progress_callback(min(pct, 60), f"Fetching NSE Bhavcopies ({cur}/{total} days)...")
+
+        universe_data = fetcher.fetch_all_universe(period_days=fetch_days, progress_callback=_fetch_prog)
         
         # Save universe data for hourly runs (we convert numpy arrays to lists)
         cache_data = {}
@@ -220,6 +248,9 @@ class Scheduler:
         with open(self.cache_data_file, "w") as f:
             json.dump(cache_data, f)
             
+        if progress_callback:
+            progress_callback(65, "Evaluating Uptrend criteria (RSI, ADX, Slope, Volume)...")
+
         advanced = self.config.advanced
         analyzer = UptrendAnalyzer(
             sma_short=filters.get("sma_short", 50),
@@ -236,6 +267,8 @@ class Scheduler:
         results = analyzer.filter_and_rank(universe_data, lookback_days=lookback)
         
         # Phase 4: Sector Strength
+        if progress_callback:
+            progress_callback(75, "Analyzing sector strength & momentum boosts...")
         sector_data = self.sector_analyzer.rank_sectors(results)
         top_sectors = sector_data["top_sectors"]
         print(f"[info] Top 3 strongest sectors today: {', '.join(top_sectors)}")
@@ -260,6 +293,8 @@ class Scheduler:
         # Apply fundamental gate before taking top N
         advanced = self.config.advanced
         if advanced.get("fundamental_check_enabled", True):
+            if progress_callback:
+                progress_callback(82, "Running fundamental quality checks...")
             print("[info] Running fundamental quality check on top candidates...")
             fundamental = FundamentalFilter()
             filtered_results = []
@@ -285,10 +320,12 @@ class Scheduler:
         self.notifier.send_trailing_stop_alerts(alerts)
         
         # Priority Watchlist Scan
+        if progress_callback:
+            progress_callback(86, "Scanning Priority Watchlist & trailing stops...")
         wl_alerts = self._analyze_special_watchlist(universe_data)
         self.notifier.send_watchlist_alerts(wl_alerts)
 
-        self._run_sentiment_and_notify(top_results, market_health)
+        self._run_sentiment_and_notify(top_results, market_health, progress_callback=progress_callback)
 
     def _analyze_special_watchlist(self, universe_data: dict) -> list:
         """Analyzes stocks in user's Special Watchlist against technical rules and produces priority alerts."""

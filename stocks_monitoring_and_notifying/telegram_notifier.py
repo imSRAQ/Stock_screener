@@ -259,18 +259,65 @@ class TelegramNotifier:
         await update.message.reply_text(f"System Status:\n{status}\nHourly Scans: {hourly}")
 
     async def _cmd_scan(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Manually trigger a full scan and send the updated dashboard."""
-        await update.message.reply_text(
+        """Manually trigger a full scan and send the updated dashboard with live progress."""
+        msg = await update.message.reply_text(
             "⏳ <b>Manual Uptrend Scan started...</b>\n"
-            "This may take a few minutes. I will notify you when done.",
+            "<code>[░░░░░░░░░░] 0%</code>\n"
+            "<i>Initializing scanner engine...</i>",
             parse_mode="HTML"
         )
 
+        chat_id = msg.chat_id
+        message_id = msg.message_id
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            loop = None
+
         def _run_scan_thread():
+            import time
+            last_edit = [0.0]
+            last_pct = [-1]
+
+            def on_progress(pct: int, status_text: str):
+                now = time.time()
+                # Throttling: at least 3.5s between edits unless 100% or >=10% leap
+                if pct != 100 and (now - last_edit[0] < 3.5) and (pct - last_pct[0] < 10):
+                    return
+                last_edit[0] = now
+                last_pct[0] = pct
+
+                bars = max(0, min(10, int(pct / 10)))
+                bar_str = "█" * bars + "░" * (10 - bars)
+                status_icon = "✅" if pct == 100 else "⏳"
+                title = "Manual Uptrend Scan complete!" if pct == 100 else "Manual Uptrend Scan in progress..."
+                text = (
+                    f"{status_icon} <b>{title}</b>\n"
+                    f"<code>[{bar_str}] {pct}%</code>\n"
+                    f"<i>{status_text}</i>"
+                )
+
+                async def _do_edit():
+                    try:
+                        await context.bot.edit_message_text(
+                            chat_id=chat_id,
+                            message_id=message_id,
+                            text=text,
+                            parse_mode="HTML"
+                        )
+                    except Exception:
+                        pass
+
+                if loop and loop.is_running():
+                    try:
+                        asyncio.run_coroutine_threadsafe(_do_edit(), loop)
+                    except Exception:
+                        pass
+
             try:
                 from scheduler import Scheduler
                 sched = Scheduler()
-                sched.run_full(force=True)
+                sched.run_full(force=True, progress_callback=on_progress)
                 # Attempt to push updated dashboard & state to GitHub
                 try:
                     import bot_worker
