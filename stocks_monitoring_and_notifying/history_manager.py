@@ -53,7 +53,7 @@ class HistoryManager:
         if added:
             self._save_history()
 
-    def calculate_analytics(self) -> dict:
+    def calculate_analytics(self, universe_data: dict = None) -> dict:
         """Calculates win rate and average P&L based on current market prices."""
         if not self.history:
             return {
@@ -65,17 +65,26 @@ class HistoryManager:
             
         import yfinance as yf
         
-        # Collect symbols
-        symbols = list({h['symbol'] + ".NS" for h in self.history})
-        
         current_prices = {}
-        if symbols:
+        missing_symbols = []
+        if universe_data:
+            for h in self.history:
+                sym = h['symbol']
+                clean = str(sym).replace(".NS", "").upper().strip()
+                if clean in universe_data and len(universe_data[clean].get('close', [])) > 0:
+                    current_prices[clean] = float(universe_data[clean]['close'][-1])
+                else:
+                    missing_symbols.append(clean + ".NS")
+            missing_symbols = list(set(missing_symbols))
+        else:
+            missing_symbols = list({h['symbol'] + ".NS" for h in self.history})
+        
+        if missing_symbols:
             try:
-                data = yf.download(symbols, period="1d", group_by="ticker", threads=True, progress=False)
-                for sym in symbols:
+                data = yf.download(missing_symbols, period="1d", group_by="ticker", threads=True, progress=False)
+                for sym in missing_symbols:
                     base_sym = sym.replace(".NS", "")
-                    if len(symbols) == 1:
-                        # yfinance returns a flat dataframe for a single ticker
+                    if len(missing_symbols) == 1:
                         price = data['Close'].iloc[-1] if not data.empty and 'Close' in data else 0
                     else:
                         price = data[sym]['Close'].iloc[-1] if sym in data and not data[sym].empty else 0

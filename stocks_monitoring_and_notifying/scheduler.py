@@ -170,7 +170,7 @@ class Scheduler:
         
         history_mgr = HistoryManager()
         history_mgr.record_entries(final_entries)
-        analytics = history_mgr.calculate_analytics()
+        analytics = history_mgr.calculate_analytics(universe_data=universe_data)
         
         # Since docs is now inside stocks_monitoring_and_notifying, we point to "docs"
         dashboard_gen = DashboardGenerator(docs_dir="docs")

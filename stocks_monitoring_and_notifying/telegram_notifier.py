@@ -310,7 +310,9 @@ class TelegramNotifier:
 
                 if loop and loop.is_running():
                     try:
-                        asyncio.run_coroutine_threadsafe(_do_edit(), loop)
+                        fut = asyncio.run_coroutine_threadsafe(_do_edit(), loop)
+                        if pct == 100:
+                            fut.result(timeout=5)
                     except Exception:
                         pass
 
@@ -318,6 +320,7 @@ class TelegramNotifier:
                 from scheduler import Scheduler
                 sched = Scheduler()
                 sched.run_full(force=True, progress_callback=on_progress)
+                on_progress(100, "Scan complete!")
                 # Attempt to push updated dashboard & state to GitHub
                 try:
                     import bot_worker
