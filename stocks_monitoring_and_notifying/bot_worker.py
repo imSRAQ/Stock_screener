@@ -81,6 +81,7 @@ def _push_latest():
         print("[warn] GITHUB_TOKEN not set — cannot push updates to GitHub.")
         return
     try:
+        env = {**os.environ, "GIT_TERMINAL_PROMPT": "0"}
         # Add the specific generated files using -f because JSONs are in .gitignore
         files_to_add = [
             "stocks_monitoring_and_notifying/docs/index.html",
@@ -95,12 +96,12 @@ def _push_latest():
         ]
         
         for f in files_to_add:
-            subprocess.run(["git", "add", "-f", f], cwd=REPO_ROOT, capture_output=True)
+            subprocess.run(["git", "add", "-f", f], cwd=REPO_ROOT, capture_output=True, timeout=15, env=env)
             
-        diff = subprocess.run(["git", "diff", "--staged", "--quiet"], cwd=REPO_ROOT)
+        diff = subprocess.run(["git", "diff", "--staged", "--quiet"], cwd=REPO_ROOT, timeout=15, env=env)
         if diff.returncode != 0: # Changes exist
-            subprocess.run(["git", "commit", "-m", "Auto-update state from 24/7 bot worker"], cwd=REPO_ROOT, capture_output=True)
-            r = subprocess.run(["git", "push"], cwd=REPO_ROOT, capture_output=True, text=True)
+            subprocess.run(["git", "commit", "-m", "Auto-update state from 24/7 bot worker"], cwd=REPO_ROOT, capture_output=True, timeout=15, env=env)
+            r = subprocess.run(["git", "push"], cwd=REPO_ROOT, capture_output=True, text=True, timeout=30, env=env)
             if r.returncode == 0:
                 print("[info] Successfully pushed state to GitHub.")
             else:

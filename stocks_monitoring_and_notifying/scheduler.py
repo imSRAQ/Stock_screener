@@ -85,7 +85,7 @@ class Scheduler:
     # batch size = 5 stocks/req, so 15 stocks = 3 API calls).
     MAX_AI_STOCKS = 15
 
-    def _run_sentiment_and_notify(self, results: list, market_health: dict, is_weekly=False, progress_callback=None):
+    def _run_sentiment_and_notify(self, results: list, market_health: dict, is_weekly=False, progress_callback=None, universe_data: dict = None):
         """Runs the sentiment + AI pipeline and sends Telegram messages."""
         if not results:
             print("[info] No results to process.")
@@ -182,12 +182,13 @@ class Scheduler:
         v_positions = pt.get_portfolio()
         current_prices = {}
         if v_positions:
-            fetcher = DataFetcher()
-            # Fetch latest data for virtual positions (needs just a few days for current price/ATR)
-            v_data = fetcher.fetch_all_universe(period_days=20, symbols=list(v_positions.keys()))
-            for sym, d in v_data.items():
-                closes = d.get('close', [])
-                if len(closes) > 0:
+            universe_data = universe_data or {}
+            missing_syms = []
+            for sym in v_positions:
+                clean_sym = str(sym).replace(".NS", "").upper().strip()
+                if clean_sym in universe_data and len(universe_data[clean_sym].get('close', [])) > 0:
+                    d = universe_data[clean_sym]
+                    closes = d.get('close', [])
                     close = float(closes[-1])
                     highs = d.get('high', [])
                     lows = d.get('low', [])
@@ -195,7 +196,31 @@ class Scheduler:
                     low = float(lows[-1]) if len(lows) > 0 else close
                     prev_close = float(closes[-2]) if len(closes) > 1 else close
                     tr = max(high - low, abs(high - prev_close), abs(low - prev_close))
-                    current_prices[sym] = {"price": close, "atr": tr}
+                    current_prices[clean_sym] = {"price": close, "atr": tr}
+                else:
+                    missing_syms.append(clean_sym)
+            
+            # Only fetch for missing symbols, if any
+            if missing_syms:
+                try:
+                    import yfinance as yf
+                    yf_syms = [f"{s}.NS" for s in missing_syms]
+                    data = yf.download(yf_syms, period="1mo", progress=False)
+                    for sym in missing_syms:
+                        yf_sym = f"{sym}.NS"
+                        if len(yf_syms) == 1:
+                            df = data.dropna(how="all")
+                        else:
+                            df = data[yf_sym].dropna(how="all") if (yf_sym in data) else None
+                        if df is not None and not df.empty:
+                            close = float(df["Close"].iloc[-1])
+                            high = float(df["High"].iloc[-1])
+                            low = float(df["Low"].iloc[-1])
+                            prev_close = float(df["Close"].iloc[-2]) if len(df) > 1 else close
+                            tr = max(high - low, abs(high - prev_close), abs(low - prev_close))
+                            current_prices[sym] = {"price": close, "atr": tr}
+                except Exception as exc:
+                    print(f"[warn] Could not fetch missing prices for virtual positions: {exc}")
 
         pt.execute_trades(final_entries, final_exits, current_prices, self.notifier)
         
@@ -325,7 +350,7 @@ class Scheduler:
         wl_alerts = self._analyze_special_watchlist(universe_data)
         self.notifier.send_watchlist_alerts(wl_alerts)
 
-        self._run_sentiment_and_notify(top_results, market_health, progress_callback=progress_callback)
+        self._run_sentiment_and_notify(top_results, market_health, progress_callback=progress_callback, universe_data=universe_data)
 
     def _analyze_special_watchlist(self, universe_data: dict) -> list:
         """Analyzes stocks in user's Special Watchlist against technical rules and produces priority alerts."""
@@ -494,7 +519,7 @@ class Scheduler:
         wl_alerts = self._analyze_special_watchlist(universe_data)
         self.notifier.send_watchlist_alerts(wl_alerts)
 
-        self._run_sentiment_and_notify(top_results, market_health)
+        self._run_sentiment_and_notify(top_results, market_health, universe_data=universe_data)
 
 
 if __name__ == "__main__":

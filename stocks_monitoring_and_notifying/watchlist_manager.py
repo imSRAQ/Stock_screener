@@ -77,16 +77,17 @@ class WatchlistManager:
         try:
             # Check if inside a git repository
             repo_dir = os.path.dirname(os.path.dirname(self.filepath))
+            env = {**os.environ, "GIT_TERMINAL_PROMPT": "0"}
             
             # git add
-            subprocess.run(["git", "add", self.filepath], cwd=repo_dir, check=True, capture_output=True)
+            subprocess.run(["git", "add", self.filepath], cwd=repo_dir, check=True, capture_output=True, timeout=15, env=env)
             
             # git commit
-            commit_res = subprocess.run(["git", "commit", "-m", "Auto-sync watchlist.json"], cwd=repo_dir, capture_output=True)
+            commit_res = subprocess.run(["git", "commit", "-m", "Auto-sync watchlist.json"], cwd=repo_dir, capture_output=True, timeout=15, env=env)
             
             # git push only if commit was successful (i.e. there were changes)
             if commit_res.returncode == 0:
-                subprocess.run(["git", "push"], cwd=repo_dir, check=True, capture_output=True)
+                subprocess.run(["git", "push"], cwd=repo_dir, check=True, capture_output=True, timeout=25, env=env)
                 print("[info] Watchlist synced to git successfully.")
         except Exception as e:
             # We don't want to crash the app if git fails, just log it.

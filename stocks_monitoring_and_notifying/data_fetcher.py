@@ -164,7 +164,7 @@ class DataFetcher:
 
         return rows
 
-    def _fetch_yfinance_fallback(self, period_days: int, progress_callback=None) -> dict:
+    def _fetch_yfinance_fallback(self, period_days: int, symbols: list = None, progress_callback=None) -> dict:
         """Fallback to Yahoo Finance if NSE Bhavcopy is blocked."""
         try:
             import yfinance as yf
@@ -172,13 +172,16 @@ class DataFetcher:
             print("[error] yfinance not installed. Cannot use fallback.")
             return {}
 
-        symbols_file = os.path.join(os.path.dirname(__file__), "nse_symbols.txt")
-        if not os.path.exists(symbols_file):
-            print("[error] nse_symbols.txt not found. Cannot use fallback.")
-            return {}
+        if symbols:
+            base_symbols = [str(s).replace(".NS", "").upper().strip() for s in symbols if s]
+        else:
+            symbols_file = os.path.join(os.path.dirname(__file__), "nse_symbols.txt")
+            if not os.path.exists(symbols_file):
+                print("[error] nse_symbols.txt not found. Cannot use fallback.")
+                return {}
 
-        with open(symbols_file, "r", encoding="utf-8") as f:
-            base_symbols = [line.strip() for line in f if line.strip()]
+            with open(symbols_file, "r", encoding="utf-8") as f:
+                base_symbols = [line.strip() for line in f if line.strip()]
         
         if not base_symbols:
             return {}
@@ -309,7 +312,7 @@ class DataFetcher:
 
         if not result:
             print("[warn] Bhavcopy yielded 0 results (possibly blocked). Falling back to yfinance...")
-            res = self._fetch_yfinance_fallback(period_days, progress_callback)
+            res = self._fetch_yfinance_fallback(period_days, symbols=symbols, progress_callback=progress_callback)
             if symbols:
                 res = {k: v for k, v in res.items() if k in symbols}
             return res

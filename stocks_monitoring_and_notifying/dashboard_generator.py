@@ -24,9 +24,9 @@ class DashboardGenerator:
         history_cards_html = self._generate_history_cards(analytics.get('active_history', []))
         portfolio_cards_html = self._generate_portfolio_cards(portfolio)
         
-        market_status = market_health.get('status', 'UNKNOWN')
-        nifty_price = market_health.get('nifty_price', 0)
-        sma = market_health.get('nifty_50_sma', 0)
+        market_status = market_health.get('status') or market_health.get('status_text', 'UNKNOWN')
+        nifty_price = (market_health.get('nifty_price') or market_health.get('nifty_close')) or 0.0
+        sma = (market_health.get('nifty_50_sma') or market_health.get('nifty_sma50')) or 0.0
 
         html_content = f"""<!DOCTYPE html>
 <html lang="en">
